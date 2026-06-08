@@ -1,0 +1,275 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.hero {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.14), rgba(37, 99, 235, 0.1));
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  display: grid;
+  gap: 1rem;
+  padding: 1.15rem;
+
+  p,
+  h2 {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    color: var(--app-accent);
+    font-weight: 800;
+    text-transform: capitalize;
+  }
+
+  h2 {
+    font-size: clamp(1.25rem, 3vw, 1.9rem);
+    margin-top: 0.25rem;
+  }
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  a {
+    text-decoration: none;
+  }
+
+  button {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.5rem;
+  }
+}
+
+.serviceGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.serviceCard {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  color: var(--app-heading);
+  display: grid;
+  gap: 0.55rem;
+  min-height: 10rem;
+  padding: 1rem;
+  text-decoration: none;
+
+  svg {
+    color: var(--app-accent);
+  }
+
+  strong,
+  span {
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    color: var(--app-muted);
+    line-height: 1.5;
+  }
+}
+
+.split {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.sectionHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  svg {
+    color: var(--app-accent);
+    flex: 0 0 auto;
+  }
+
+  h3,
+  p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    color: var(--app-muted);
+    line-height: 1.5;
+    margin-top: 0.25rem;
+  }
+}
+
+.specialties {
+  display: grid;
+  gap: 0.75rem;
+
+  a {
+    align-items: center;
+    border: 1px solid var(--app-line-soft);
+    border-radius: 8px;
+    color: var(--app-heading);
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.8rem;
+    text-decoration: none;
+  }
+
+  span {
+    color: var(--app-muted);
+    flex: 0 0 auto;
+  }
+}
+
+.videoVisit {
+  display: grid;
+  gap: 0.75rem;
+
+  strong,
+  span {
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    color: var(--app-muted);
+  }
+
+  a {
+    justify-self: start;
+    text-decoration: none;
+  }
+
+  button {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.5rem;
+  }
+}
+
+.urgentForm {
+  display: grid;
+  gap: 0.75rem;
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  span {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  textarea {
+    background: var(--app-input);
+    border: 1px solid var(--app-line);
+    color: var(--app-text);
+    border-radius: 8px;
+    font: inherit;
+    min-height: 7rem;
+    padding: 0.75rem;
+    resize: vertical;
+    width: 100%;
+  }
+
+  input,
+  select {
+    background: var(--app-input);
+    border: 1px solid var(--app-line);
+    border-radius: 8px;
+    color: var(--app-text);
+    min-height: 2.75rem;
+    padding: 0.7rem 0.75rem;
+    width: 100%;
+  }
+
+  button {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.5rem;
+    justify-self: start;
+  }
+}
+
+.formGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+.triageStatus {
+  border-top: 1px solid var(--app-line-soft);
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  text-transform: capitalize;
+
+  strong,
+  span {
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    color: var(--app-muted);
+  }
+}
+
+.roadmap {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding-left: 1.15rem;
+
+  li {
+    line-height: 1.5;
+  }
+}
+
+.empty {
+  color: var(--app-muted);
+  margin: 0;
+}
+
+:global(:root[data-theme="dark"]) .hero {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(96, 165, 250, 0.1));
+}
+
+@media (min-width: 680px) {
+  .serviceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) {
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 940px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1180px) {
+  .serviceGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,32 @@
+.field {
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+
+  span {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  input,
+  select,
+  textarea {
+    background: var(--app-input);
+    border: 1px solid var(--app-line);
+    border-radius: 8px;
+    color: var(--app-text);
+    min-height: 2.75rem;
+    padding: 0.75rem 0.85rem;
+    width: 100%;
+  }
+
+  textarea {
+    min-height: 7rem;
+    resize: vertical;
+  }
+
+  small {
+    color: #b42318;
+  }
+}

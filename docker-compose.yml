@@ -1,0 +1,54 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: healthtech
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://127.0.0.1:8000
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: healthtech
+      DB_USERNAME: root
+      DB_PASSWORD:
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+      BROADCAST_CONNECTION: log
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - ./backend:/var/www/html
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: http://127.0.0.1:8000/api
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  mysql-data:

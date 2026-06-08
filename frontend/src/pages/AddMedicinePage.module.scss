@@ -1,0 +1,211 @@
+.page {
+  align-content: start;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.header {
+  align-items: stretch;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--app-accent) 12%, transparent), transparent 48%),
+    var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  box-shadow: var(--app-shadow);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+
+  > div:first-child {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  > div:last-child {
+    align-content: center;
+  }
+
+  span {
+    color: var(--app-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h2,
+  p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  h2 {
+    color: var(--app-heading);
+    font-size: clamp(1.65rem, 5vw, 2.45rem);
+    letter-spacing: 0;
+    line-height: 1.05;
+  }
+
+  p {
+    color: var(--app-muted);
+    line-height: 1.55;
+    max-width: 46rem;
+  }
+}
+
+.layout {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.formCard {
+  padding: clamp(1rem, 3vw, 1.35rem) !important;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+
+  fieldset {
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--app-accent) 5%, transparent), transparent 52%),
+      color-mix(in srgb, var(--app-surface-strong) 78%, transparent);
+    border: 1px solid var(--app-line-soft);
+    border-radius: 8px;
+    display: grid;
+    gap: 0.9rem;
+    margin: 0;
+    min-width: 0;
+    padding: 1rem;
+  }
+
+  legend {
+    align-items: center;
+    color: var(--app-heading);
+    display: inline-flex;
+    font-weight: 900;
+    gap: 0.5rem;
+    padding: 0 0.45rem;
+
+    svg {
+      color: var(--app-accent);
+    }
+  }
+
+  label {
+    display: grid;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  label span {
+    color: var(--app-muted);
+    font-size: 0.8rem;
+    font-weight: 900;
+  }
+
+  input,
+  select {
+    background: var(--app-input);
+    border: 1px solid var(--app-line);
+    border-radius: 8px;
+    color: var(--app-text);
+    min-height: 2.9rem;
+    padding: 0.7rem 0.85rem;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    width: 100%;
+
+    &:focus {
+      border-color: var(--app-accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 14%, transparent);
+      outline: 0;
+    }
+  }
+
+  select {
+    appearance: none;
+    background:
+      linear-gradient(45deg, transparent 50%, var(--app-accent) 50%) calc(100% - 1.15rem) 50% / 0.42rem 0.42rem no-repeat,
+      linear-gradient(135deg, var(--app-accent) 50%, transparent 50%) calc(100% - 0.88rem) 50% / 0.42rem 0.42rem no-repeat,
+      color-mix(in srgb, var(--app-input) 94%, var(--app-accent) 6%);
+    cursor: pointer;
+    font-weight: 800;
+    padding-right: 2.2rem;
+
+    option {
+      background: var(--app-surface);
+      color: var(--app-text);
+      font-weight: 700;
+    }
+  }
+}
+
+.formRow {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.sidePanel {
+  align-content: start;
+  display: grid;
+  gap: 1rem;
+
+  section {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  svg {
+    color: var(--app-accent);
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    color: var(--app-heading);
+  }
+
+  p {
+    color: var(--app-muted);
+    line-height: 1.55;
+  }
+}
+
+:global(:root[data-theme="dark"]) .form select option {
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+@media (min-width: 620px) {
+  .header {
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .formRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1080px) {
+  .layout {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr);
+  }
+}

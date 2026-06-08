@@ -1,0 +1,104 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p,
+  span {
+    color: #0f766e;
+    font-weight: 800;
+  }
+}
+
+.stage {
+  aspect-ratio: 16 / 10;
+  background: #0f2f3d;
+  border-radius: 8px;
+  min-height: 24rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.remote,
+.local {
+  background: #102635;
+  object-fit: cover;
+}
+
+.remote {
+  height: 100%;
+  width: 100%;
+}
+
+.local {
+  border: 3px solid #ffffff;
+  border-radius: 8px;
+  bottom: 1rem;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.25);
+  height: clamp(7rem, 22vw, 12rem);
+  position: absolute;
+  right: 1rem;
+  width: clamp(9rem, 28vw, 17rem);
+}
+
+.join {
+  align-items: center;
+  background: rgba(15, 47, 61, 0.72);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: absolute;
+
+  section {
+    max-width: 25rem;
+  }
+
+  h3 {
+    margin: 0 0 0.5rem;
+  }
+
+  p {
+    color: var(--app-muted);
+  }
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stage {
+    aspect-ratio: 9 / 14;
+    min-height: 32rem;
+  }
+
+  .local {
+    bottom: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

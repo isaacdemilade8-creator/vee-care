@@ -1,0 +1,35 @@
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  a {
+    align-items: center;
+    background: var(--journal-panel);
+    border: 1px solid var(--journal-line);
+    border-radius: 999px;
+    color: var(--journal-muted);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.92rem;
+    font-weight: 850;
+    gap: 0.45rem;
+    min-height: 2.55rem;
+    padding: 0.55rem 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+}
+
+.active {
+  background: var(--journal-text) !important;
+  border-color: var(--journal-text) !important;
+  color: var(--journal-panel-strong) !important;
+}

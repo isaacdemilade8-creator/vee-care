@@ -1,0 +1,108 @@
+:root {
+  --app-bg: #f5fbfa;
+  --app-surface: #ffffff;
+  --app-surface-strong: #f4fbfa;
+  --app-text: #142033;
+  --app-heading: #102a43;
+  --app-muted: #5b7083;
+  --app-line: #dbece9;
+  --app-line-soft: #edf4f2;
+  --app-input: #ffffff;
+  --app-accent: #0f766e;
+  --app-accent-soft: #dff7f3;
+  --app-blue-soft: #e8f4ff;
+  --app-shadow: 0 16px 40px rgba(15, 118, 110, 0.08);
+  --app-shadow-strong: 0 20px 50px rgba(15, 118, 110, 0.14);
+  color: #142033;
+  background: #f5fbfa;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #06151b;
+  --app-surface: #0d2028;
+  --app-surface-strong: #122c35;
+  --app-text: #edfdf9;
+  --app-heading: #f3fffd;
+  --app-muted: #a4bcc1;
+  --app-line: #24434b;
+  --app-line-soft: #1a343d;
+  --app-input: #0a1b22;
+  --app-accent: #7dd3c7;
+  --app-accent-soft: #14383c;
+  --app-blue-soft: #102f45;
+  --app-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
+  --app-shadow-strong: 0 24px 58px rgba(0, 0, 0, 0.42);
+  color: #edfdf9;
+  background: var(--app-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  background: var(--app-bg);
+}
+
+:root[data-theme="dark"] body {
+  background: var(--app-bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  min-width: 0;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  background: var(--app-input);
+  border-color: var(--app-line);
+  color: var(--app-text);
+}
+
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder {
+  color: #789198;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--app-accent) 24%, transparent);
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

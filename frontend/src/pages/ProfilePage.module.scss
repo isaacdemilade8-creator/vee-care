@@ -1,0 +1,262 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.hero {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    background: linear-gradient(135deg, rgba(13, 148, 136, 0.14), rgba(59, 130, 246, 0.1));
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+  }
+
+  > * {
+    position: relative;
+  }
+}
+
+:global(:root[data-theme="dark"]) .hero::before {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(96, 165, 250, 0.1));
+}
+
+.avatar {
+  align-items: center;
+  background: linear-gradient(135deg, #dff7f3, #e8f4ff);
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  color: var(--app-accent);
+  display: flex;
+  height: 5rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 5rem;
+
+  img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+  }
+}
+
+.identity {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+
+  span {
+    color: #0f766e;
+    font-weight: 900;
+    text-transform: capitalize;
+  }
+
+  h2,
+  p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  h2 {
+    color: var(--app-heading);
+    font-size: clamp(1.8rem, 6vw, 3rem);
+  }
+
+  p {
+    color: var(--app-muted);
+    line-height: 1.55;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.stats,
+.details {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.details {
+  h3 {
+    color: var(--app-heading);
+    margin: 0 0 1rem;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.85rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    align-items: center;
+    color: var(--app-muted);
+    display: flex;
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.posts {
+  display: grid;
+  gap: 0.75rem;
+
+  article {
+    background: var(--app-surface-strong);
+    border: 1px solid var(--app-line);
+    border-radius: 8px;
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.8rem;
+  }
+
+  a {
+    color: var(--app-accent);
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  p,
+  span {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    color: var(--app-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  span {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+  }
+}
+
+.reviewHeader {
+  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: var(--app-muted);
+    margin-top: 0.25rem;
+  }
+}
+
+.stars {
+  color: #f59e0b;
+  display: flex;
+  gap: 0.2rem;
+}
+
+.reviewForm {
+  border-bottom: 1px solid var(--app-line-soft);
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+}
+
+.starPicker {
+  display: flex;
+  gap: 0.35rem;
+
+  button {
+    background: transparent;
+    border: 0;
+    color: #94a3b8;
+    font-size: 2rem;
+    line-height: 1;
+    padding: 0.15rem;
+  }
+}
+
+.starActive {
+  color: #f59e0b !important;
+}
+
+.reviewList {
+  display: grid;
+  gap: 0.75rem;
+
+  article {
+    border: 1px solid var(--app-line-soft);
+    border-radius: 8px;
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.8rem;
+  }
+
+  strong {
+    color: #f59e0b;
+  }
+
+  p,
+  span {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    color: var(--app-muted);
+  }
+}
+
+:global(:root[data-theme="dark"]) .avatar {
+  background: linear-gradient(135deg, #12383d, #102f45);
+}
+
+@media (min-width: 700px) {
+  .hero {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    textarea,
+    button {
+      grid-column: 1 / -1;
+    }
+  }
+}

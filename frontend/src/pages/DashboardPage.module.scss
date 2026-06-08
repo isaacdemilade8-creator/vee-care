@@ -1,0 +1,210 @@
+.stack {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.roleHero {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.14), rgba(37, 99, 235, 0.1));
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 1.15rem;
+
+  > svg {
+    color: var(--app-accent);
+    height: 2.4rem;
+    width: 2.4rem;
+  }
+
+  p {
+    color: var(--app-accent);
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+    text-transform: capitalize;
+  }
+
+  h2 {
+    font-size: clamp(1.25rem, 3vw, 1.9rem);
+    margin: 0;
+  }
+
+  a {
+    justify-self: start;
+  }
+}
+
+.grid,
+.actions {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.split {
+  display: grid;
+  gap: 1rem;
+}
+
+.actionsVertical {
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+
+  h2 {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+.list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  article {
+    border-top: 1px solid var(--app-line-soft);
+    display: grid;
+    gap: 0.3rem;
+    padding-top: 0.75rem;
+  }
+
+  span {
+    color: var(--app-muted);
+    overflow-wrap: anywhere;
+  }
+}
+
+.empty {
+  color: var(--app-muted);
+  margin: 1rem 0 0;
+}
+
+.actions > section {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  font-weight: 800;
+}
+
+.quickAction {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  height: 100%;
+  font-weight: 800;
+
+  svg {
+    color: var(--app-accent);
+    flex: 0 0 auto;
+  }
+}
+
+.workflowHeader {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: var(--app-muted);
+  }
+}
+
+.workflowForm {
+  display: grid;
+  gap: 0.75rem;
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  span {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  input,
+  select {
+    background: var(--app-input);
+    border: 1px solid var(--app-line);
+    color: var(--app-text);
+    border-radius: 8px;
+    min-height: 2.7rem;
+    padding: 0.65rem 0.75rem;
+    width: 100%;
+  }
+
+  select {
+    appearance: none;
+    background:
+      linear-gradient(45deg, transparent 50%, var(--app-accent) 50%) calc(100% - 1.15rem) 50% / 0.42rem 0.42rem no-repeat,
+      linear-gradient(135deg, var(--app-accent) 50%, transparent 50%) calc(100% - 0.88rem) 50% / 0.42rem 0.42rem no-repeat,
+      color-mix(in srgb, var(--app-input) 94%, var(--app-accent) 6%);
+    cursor: pointer;
+    font-weight: 800;
+    padding-right: 2.2rem;
+
+    option {
+      background: var(--app-surface);
+      color: var(--app-text);
+      font-weight: 700;
+    }
+  }
+}
+
+:global(:root[data-theme="dark"]) .roleHero {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(96, 165, 250, 0.1));
+}
+
+:global(:root[data-theme="dark"]) .workflowForm select option {
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+@media (min-width: 520px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 760px) {
+  .actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1120px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .roleHero {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .split {
+    grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .roleHero {
+    grid-template-columns: 1fr;
+  }
+}
