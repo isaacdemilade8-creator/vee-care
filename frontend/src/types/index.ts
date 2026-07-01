@@ -97,23 +97,16 @@ export interface Medicine {
   sku?: string | null;
   category?: string | null;
   dosage_form?: string | null;
-  dosageForm?: string | null;
   strength?: string | null;
   manufacturer?: string | null;
   batch_number?: string | null;
-  batchNumber?: string | null;
   storage_location?: string | null;
-  storageLocation?: string | null;
   stock: number;
   reorder_level?: number;
-  reorderLevel?: number;
   unit_price?: number;
-  unitPrice?: number;
   status?: 'active' | 'inactive';
   expires_at?: string | null;
-  expiresAt?: string | null;
   stock_movements?: MedicineStockMovement[];
-  stockMovements?: MedicineStockMovement[];
 }
 
 export interface MedicineStockMovement {
@@ -121,13 +114,10 @@ export interface MedicineStockMovement {
   type: 'opening_stock' | 'restock' | 'dispense' | 'correction' | 'waste' | 'return';
   delta: number;
   quantity_before?: number;
-  quantityBefore?: number;
   quantity_after?: number;
-  quantityAfter?: number;
   reason: string;
   reference?: string | null;
   created_at?: string;
-  createdAt?: string;
 }
 
 export interface MedicineOrder {
@@ -138,16 +128,11 @@ export interface MedicineOrder {
   quantity: number;
   status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
   pickup_code?: string;
-  pickupCode?: string;
   notes?: string | null;
   pharmacist_note?: string | null;
-  pharmacistNote?: string | null;
   prepared_at?: string | null;
-  preparedAt?: string | null;
   picked_up_at?: string | null;
-  pickedUpAt?: string | null;
   created_at?: string;
-  createdAt?: string;
 }
 
 export interface CareNotification {

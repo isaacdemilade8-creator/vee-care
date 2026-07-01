@@ -16,12 +16,6 @@ function formValues(form: HTMLFormElement) {
   return Object.fromEntries(new FormData(form)) as Record<string, string>;
 }
 
-function medicineValue(medicine: Medicine, snake: keyof Medicine, camel: keyof Medicine) {
-  const value = medicine[camel] ?? medicine[snake] ?? '';
-
-  return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
-}
-
 export function DrugInventoryPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -144,8 +138,8 @@ export function DrugInventoryPage() {
           {inventory.isLoading ? <SkeletonRows /> : (
             <div className={styles.table}>
               {medicines.map((medicine: Medicine) => {
-                const expired = Boolean((medicine.expiresAt ?? medicine.expires_at) && new Date(medicine.expiresAt ?? medicine.expires_at ?? '') < new Date());
-                const low = medicine.stock <= Number(medicine.reorderLevel ?? medicine.reorder_level ?? 0);
+                const expired = Boolean(medicine.expires_at && new Date(medicine.expires_at) < new Date());
+                const low = medicine.stock <= Number(medicine.reorder_level ?? 0);
 
                 return (
                   <button
@@ -155,9 +149,9 @@ export function DrugInventoryPage() {
                     onClick={() => setSelected(medicine)}
                   >
                     <strong>{medicine.name}</strong>
-                    <span>{medicine.category ?? 'Uncategorized'} | {medicineValue(medicine, 'dosage_form', 'dosageForm') || 'Form not set'}</span>
-                    <span>Stock: {medicine.stock} | Reorder: {medicine.reorderLevel ?? medicine.reorder_level ?? 0}</span>
-                    <span>{medicine.sku ?? 'No SKU'} | Batch: {medicineValue(medicine, 'batch_number', 'batchNumber') || 'N/A'}</span>
+                    <span>{medicine.category ?? 'Uncategorized'} | {medicine.dosage_form || 'Form not set'}</span>
+                    <span>Stock: {medicine.stock} | Reorder: {medicine.reorder_level ?? 0}</span>
+                    <span>{medicine.sku ?? 'No SKU'} | Batch: {medicine.batch_number || 'N/A'}</span>
                     {low || expired ? (
                       <span className={styles.badge}><AlertTriangle size={14} /> {expired ? 'Expired' : 'Low stock'}</span>
                     ) : <span className={styles.badge}>{medicine.status ?? 'active'}</span>}
@@ -191,22 +185,22 @@ export function DrugInventoryPage() {
                   <input name="category" defaultValue={selected.category ?? ''} placeholder="Category" />
                 </div>
                 <div className={styles.formRow}>
-                  <input name="dosage_form" defaultValue={String(medicineValue(selected, 'dosage_form', 'dosageForm'))} placeholder="Dosage form" />
+                  <input name="dosage_form" defaultValue={selected.dosage_form ?? ''} placeholder="Dosage form" />
                   <input name="strength" defaultValue={selected.strength ?? ''} placeholder="Strength" />
                   <input name="manufacturer" defaultValue={selected.manufacturer ?? ''} placeholder="Manufacturer" />
                 </div>
                 <div className={styles.formRow}>
-                  <input name="batch_number" defaultValue={String(medicineValue(selected, 'batch_number', 'batchNumber'))} placeholder="Batch number" />
-                  <input name="storage_location" defaultValue={String(medicineValue(selected, 'storage_location', 'storageLocation'))} placeholder="Storage location" />
+                  <input name="batch_number" defaultValue={selected.batch_number ?? ''} placeholder="Batch number" />
+                  <input name="storage_location" defaultValue={selected.storage_location ?? ''} placeholder="Storage location" />
                   <select name="status" defaultValue={selected.status ?? 'active'}>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
                 <div className={styles.formRow}>
-                  <input name="reorder_level" type="number" min="0" defaultValue={selected.reorderLevel ?? selected.reorder_level ?? 0} placeholder="Reorder level" />
-                  <input name="unit_price" type="number" min="0" defaultValue={selected.unitPrice ?? selected.unit_price ?? 0} placeholder="Unit price" />
-                  <input name="expires_at" type="date" defaultValue={String(selected.expiresAt ?? selected.expires_at ?? '').slice(0, 10)} aria-label="Expiry date" />
+                  <input name="reorder_level" type="number" min="0" defaultValue={selected.reorder_level ?? 0} placeholder="Reorder level" />
+                  <input name="unit_price" type="number" min="0" defaultValue={selected.unit_price ?? 0} placeholder="Unit price" />
+                  <input name="expires_at" type="date" defaultValue={String(selected.expires_at ?? '').slice(0, 10)} aria-label="Expiry date" />
                 </div>
                 <div className={styles.formActions}>
                   <Button disabled={updateMedicine.isPending}><Pencil size={17} /> Save changes</Button>
@@ -241,7 +235,7 @@ export function DrugInventoryPage() {
                 <Button disabled={adjustStock.isPending}><PackageCheck size={17} /> Record movement</Button>
               </form>
               <div className={styles.table}>
-                {(selected.stockMovements ?? selected.stock_movements ?? []).map((movement) => (
+                {(selected.stock_movements ?? []).map((movement) => (
                   <article key={movement.id}>
                     <strong>{movement.type}</strong>
                     <span>{movement.delta > 0 ? '+' : ''}{movement.delta}</span>

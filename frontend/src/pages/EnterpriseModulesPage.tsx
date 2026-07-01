@@ -360,7 +360,7 @@ export function EnterpriseModulesPage() {
             <article className={styles.row} key={order.id}>
               <div>
                 <strong>{order.medicine?.name ?? 'Medicine order'} x {order.quantity}</strong>
-                <span>{order.patient?.name ?? 'Patient'} | Pickup: {order.pickupCode ?? order.pickup_code}</span>
+                <span>{order.patient?.name ?? 'Patient'} | Pickup: {order.pickup_code}</span>
                 {order.notes ? <p>{order.notes}</p> : null}
               </div>
               <div className={styles.orderActions}>

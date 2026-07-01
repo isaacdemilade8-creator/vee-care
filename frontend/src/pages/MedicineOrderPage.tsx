@@ -98,7 +98,7 @@ export function MedicineOrderPage() {
               <strong>{order.medicine?.name ?? 'Medicine order'}</strong>
               <span>Qty: {order.quantity}</span>
               <span className={styles.badge}>{order.status}</span>
-              <span>Pickup code: {order.pickupCode ?? order.pickup_code}</span>
+              <span>Pickup code: {order.pickup_code}</span>
             </article>
           ))}
           {!orderRows.length ? (
