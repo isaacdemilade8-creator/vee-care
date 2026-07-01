@@ -69,6 +69,18 @@ textarea {
   min-width: 0;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--app-muted) 55%, transparent);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 :root[data-theme="dark"] input,
 :root[data-theme="dark"] select,
 :root[data-theme="dark"] textarea {

@@ -1,6 +1,7 @@
 import { Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Settings, ShieldCheck, ShoppingBag, Stethoscope, UserRound, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { NotificationBell } from '../components/NotificationBell';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { useAuth } from '../context/AuthContext';
@@ -100,6 +101,22 @@ export function DashboardLayout() {
     </div>
   );
 
+  const navVariants = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.04 },
+    },
+  };
+
+  const navItemVariants = {
+    hidden: { opacity: 0, x: -8 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+  };
+
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
@@ -107,9 +124,13 @@ export function DashboardLayout() {
           <HeartPulse size={24} />
           <span>Vee-care</span>
         </NavLink>
-        <nav>
-          {links.map((link) => (link.to === '/enterprise' ? renderEnterpriseGroup() : renderLink(link)))}
-        </nav>
+        <motion.nav variants={navVariants} initial="hidden" animate="visible">
+          {links.map((link) => (
+            <motion.div key={link.to} variants={navItemVariants}>
+              {link.to === '/enterprise' ? renderEnterpriseGroup() : renderLink(link)}
+            </motion.div>
+          ))}
+        </motion.nav>
         <nav className={styles.mobileNav}>
           {primaryMobileLinks.map((link) => renderLink(link, () => setMoreOpen(false)))}
           <button className={moreOpen ? styles.active : ''} type="button" onClick={() => setMoreOpen((value) => !value)}>

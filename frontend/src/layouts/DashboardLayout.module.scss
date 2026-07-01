@@ -1,6 +1,7 @@
 .shell {
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--app-accent) 10%, transparent), transparent 24rem),
+    radial-gradient(circle at bottom left, color-mix(in srgb, var(--app-accent) 8%, transparent), transparent 20rem),
     var(--app-bg);
   display: grid;
   min-height: 100vh;

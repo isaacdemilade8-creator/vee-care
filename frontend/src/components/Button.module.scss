@@ -10,7 +10,7 @@
   padding: 0.75rem 1rem;
   position: relative;
   text-align: center;
-  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 160ms ease, box-shadow 160ms ease;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 160ms ease, box-shadow 160ms ease, background-position 400ms ease;
 
   &:disabled {
     cursor: not-allowed;
@@ -36,8 +36,15 @@
 }
 
 .primary {
-  background: linear-gradient(135deg, #0f766e, #0e9388);
+  background: linear-gradient(135deg, #0f766e, #0e9388, #14b8a6, #0f766e);
+  background-size: 200% 100%;
+  background-position: 0% 50%;
   color: #ffffff;
+
+  &:not(:disabled):hover {
+    background-position: 100% 50%;
+    box-shadow: 0 14px 28px rgba(15, 118, 110, 0.3);
+  }
 }
 
 .secondary {

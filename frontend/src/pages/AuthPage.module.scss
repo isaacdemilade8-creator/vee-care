@@ -1,39 +1,156 @@
 .page {
-  align-items: center;
-  background: var(--app-bg);
-  display: flex;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 1rem;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 20% 50%, color-mix(in srgb, var(--app-accent) 12%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, color-mix(in srgb, #3b82f6 10%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, color-mix(in srgb, #8b5cf6 8%, transparent) 0%, transparent 50%),
+    var(--app-bg);
+}
+
+/* ---- floating gradient orbs (background layer) ---- */
+.decorOrb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+  filter: blur(60px);
+  opacity: 0.35;
+  background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--app-accent) 40%, transparent), color-mix(in srgb, #3b82f6 30%, transparent) 60%, transparent);
+}
+
+/* ---- brand logo (floating above the card) ---- */
+.floatingLogo {
+  position: absolute;
+  top: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  color: var(--app-accent);
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-surface));
+  border: 1px solid color-mix(in srgb, var(--app-accent) 20%, var(--app-line));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--app-accent) 12%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+/* ---- glassmorphism card wrapper ---- */
+.formWrapper {
+  position: relative;
+  z-index: 1;
   width: 100%;
+  max-width: 28rem;
 }
 
 .form {
-  background: var(--app-surface);
-  border: 1px solid var(--app-line);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--app-surface) 70%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--app-line) 60%, transparent);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px color-mix(in srgb, var(--app-accent) 6%, transparent),
+    0 2px 8px color-mix(in srgb, var(--app-accent) 4%, transparent);
   display: grid;
-  gap: 1rem;
-  margin: 0 auto;
-  max-width: 28rem;
-  padding: 1.25rem;
+  gap: 1.25rem;
+  padding: 2rem;
   width: 100%;
   min-width: 0;
+  transform-style: preserve-3d;
+  transition: box-shadow 300ms ease;
+
+  &:hover {
+    box-shadow:
+      0 12px 40px color-mix(in srgb, var(--app-accent) 10%, transparent),
+      0 2px 8px color-mix(in srgb, var(--app-accent) 6%, transparent);
+  }
 
   h1,
   p {
     margin: 0;
   }
 
-  a {
-    color: var(--app-accent);
-    font-weight: 800;
+  h1 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  p {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+    text-align: center;
+
+    a {
+      color: var(--app-accent);
+      font-weight: 800;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 }
 
-.brand {
-  font-size: 1.4rem;
+.fields {
+  display: grid;
+  gap: 1rem;
 }
 
+.brand {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: -0.02em;
+  color: var(--app-accent);
+  text-decoration: none;
+}
+
+/* ---- dark mode tweaks ---- */
+:global(:root[data-theme="dark"]) .page {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(20, 184, 166, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(96, 165, 250, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
+    var(--app-bg);
+}
+
+:global(:root[data-theme="dark"]) .decorOrb {
+  opacity: 0.2;
+  background: radial-gradient(circle at 30% 30%, rgba(20, 184, 166, 0.5), rgba(96, 165, 250, 0.3) 60%, transparent);
+}
+
+:global(:root[data-theme="dark"]) .floatingLogo {
+  background: rgba(13, 32, 40, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+:global(:root[data-theme="dark"]) .form {
+  background: rgba(13, 32, 40, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+:global(:root[data-theme="dark"]) .form:hover {
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ---- responsive ---- */
 @media (max-width: 420px) {
   .page {
     align-items: flex-start;
@@ -41,6 +158,19 @@
   }
 
   .form {
-    padding: 1rem;
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .floatingLogo {
+    display: none;
+  }
+}
+
+/* ---- reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .decorOrb,
+  .floatingLogo {
+    animation: none !important;
   }
 }
