@@ -296,6 +296,13 @@
   color: #ffffff !important;
 }
 
+@media (min-width: 860px) {
+  :global(:root[data-theme="dark"]) .sidebar a.active::before,
+  :global(:root[data-theme="dark"]) .sidebar .active::before {
+    background: #7dd3c7;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .moreMenu {
     animation: none;
@@ -354,6 +361,23 @@
       font-size: 0.88rem !important;
       min-height: 2.25rem !important;
       padding: 0.45rem 0.55rem !important;
+    }
+
+    a.active,
+    .active {
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 1.35rem;
+        background: var(--app-accent);
+        border-radius: 0 3px 3px 0;
+      }
     }
   }
 

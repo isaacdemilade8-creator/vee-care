@@ -8,6 +8,19 @@
   border: 1px solid var(--app-line);
   border-radius: 8px;
   padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-accent) 40%, transparent));
+    opacity: 0.4;
+  }
 
   p {
     color: var(--app-accent);

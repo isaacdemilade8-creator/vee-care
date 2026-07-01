@@ -10,11 +10,33 @@
   position: relative;
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-accent) 40%, transparent));
+    opacity: 0.3;
+    transition: opacity 180ms ease;
+  }
+
   &:hover {
     border-color: color-mix(in srgb, var(--app-accent) 28%, var(--app-line));
     box-shadow: var(--app-shadow-strong);
     transform: translateY(-1px);
+
+    &::before {
+      opacity: 1;
+    }
   }
+}
+
+.statIcon {
+  color: var(--app-accent);
+  display: block;
+  margin-bottom: 0.15rem;
 }
 
 .label {
