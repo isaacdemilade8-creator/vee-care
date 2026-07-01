@@ -1,6 +1,20 @@
 .page {
   display: grid;
   gap: 1rem;
+  position: relative;
+  animation: fadeIn 0.3s ease both;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: -15rem;
+    right: -15rem;
+    width: 35rem;
+    height: 35rem;
+    background: radial-gradient(circle, color-mix(in srgb, var(--app-accent) 5%, transparent), transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
 }
 
 .hero {
@@ -8,6 +22,19 @@
   border: 1px solid var(--app-line);
   border-radius: 8px;
   padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-accent) 40%, transparent));
+    opacity: 0.4;
+  }
 
   p {
     color: var(--app-accent);
@@ -30,6 +57,15 @@
 .grid {
   display: grid;
   gap: 1rem;
+
+  > * {
+    animation: fadeUp 0.35s ease both;
+  }
+
+  > *:nth-child(1) { animation-delay: 0.03s; }
+  > *:nth-child(2) { animation-delay: 0.09s; }
+  > *:nth-child(3) { animation-delay: 0.15s; }
+  > *:nth-child(4) { animation-delay: 0.21s; }
 }
 
 .chart {
@@ -45,7 +81,14 @@
     display: grid;
     gap: 0.25rem;
     padding-bottom: 0.8rem;
+    animation: fadeUp 0.35s ease both;
   }
+
+  article:nth-child(1) { animation-delay: 0.03s; }
+  article:nth-child(2) { animation-delay: 0.09s; }
+  article:nth-child(3) { animation-delay: 0.15s; }
+  article:nth-child(4) { animation-delay: 0.21s; }
+  article:nth-child(5) { animation-delay: 0.27s; }
 
   span {
     color: var(--app-muted);
@@ -54,6 +97,10 @@
 
 :global(:root[data-theme="dark"]) .hero {
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(96, 165, 250, 0.1));
+}
+
+:global(:root[data-theme="dark"]) .page::before {
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.06), transparent 70%);
 }
 
 @media (min-width: 620px) {
@@ -69,5 +116,38 @@
 
   .grid {
     grid-template-columns: 1.4fr 0.6fr;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--app-accent) 25%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--app-accent) 45%, transparent));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .stats > *,
+  .grid > *,
+  .feed article {
+    animation: none;
   }
 }

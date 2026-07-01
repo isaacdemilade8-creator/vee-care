@@ -2,6 +2,20 @@
   display: grid;
   gap: 1rem;
   min-width: 0;
+  position: relative;
+  animation: fadeIn 0.3s ease both;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: -15rem;
+    right: -15rem;
+    width: 35rem;
+    height: 35rem;
+    background: radial-gradient(circle, color-mix(in srgb, var(--app-accent) 5%, transparent), transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
 }
 
 .roleHero {
@@ -12,12 +26,26 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: auto minmax(0, 1fr);
-  padding: 1.15rem;
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-accent) 40%, transparent));
+    opacity: 0.4;
+  }
 
   > svg {
     color: var(--app-accent);
     height: 2.4rem;
     width: 2.4rem;
+    animation: glowPulse 3s ease-in-out infinite;
   }
 
   p {
@@ -43,6 +71,18 @@
   gap: 1rem;
   grid-template-columns: 1fr;
   min-width: 0;
+
+  > * {
+    animation: fadeUp 0.35s ease both;
+  }
+
+  > *:nth-child(1) { animation-delay: 0.03s; }
+  > *:nth-child(2) { animation-delay: 0.09s; }
+  > *:nth-child(3) { animation-delay: 0.15s; }
+  > *:nth-child(4) { animation-delay: 0.21s; }
+  > *:nth-child(5) { animation-delay: 0.27s; }
+  > *:nth-child(6) { animation-delay: 0.33s; }
+  > *:nth-child(7) { animation-delay: 0.39s; }
 }
 
 .split {
@@ -102,6 +142,12 @@
   gap: 0.75rem;
   height: 100%;
   font-weight: 800;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--app-shadow-strong);
+  }
 
   svg {
     color: var(--app-accent);
@@ -172,6 +218,10 @@
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(96, 165, 250, 0.1));
 }
 
+:global(:root[data-theme="dark"]) .stack::before {
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.06), transparent 70%);
+}
+
 :global(:root[data-theme="dark"]) .workflowForm select option {
   background: var(--app-surface);
   color: var(--app-text);
@@ -206,5 +256,46 @@
 @media (max-width: 620px) {
   .roleHero {
     grid-template-columns: 1fr;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--app-accent) 25%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--app-accent) 45%, transparent));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack,
+  .grid > *,
+  .actions > *,
+  .roleHero > svg {
+    animation: none;
+  }
+
+  .quickAction {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
   }
 }
