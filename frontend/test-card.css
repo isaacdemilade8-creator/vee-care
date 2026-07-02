@@ -1,0 +1,82 @@
+.card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  box-shadow: var(--app-shadow);
+  color: var(--app-text);
+  min-width: 0;
+  overflow: hidden;
+  padding: 1.25rem;
+  position: relative;
+  transition: border-color 180ms ease, box-shadow 280ms ease, transform 280ms ease;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-accent) 30%, transparent));
+  opacity: 0.55;
+  transition: opacity 280ms ease;
+}
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 2%, transparent) 0%, transparent 40%);
+  pointer-events: none;
+  border-radius: 10px;
+}
+.card:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 32%, var(--app-line));
+  box-shadow: var(--app-shadow-strong);
+  transform: translateY(-2px);
+}
+.card:hover::before {
+  opacity: 1;
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.statIcon {
+  color: var(--app-accent);
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.label {
+  color: var(--app-muted);
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.value {
+  color: var(--app-heading);
+  display: block;
+  font-size: 1.8rem;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+}
+@media (max-width: 420px) {
+  .card {
+    padding: 1rem;
+  }
+  .value {
+    font-size: 1.45rem;
+  }
+}

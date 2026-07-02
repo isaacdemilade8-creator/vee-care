@@ -1,21 +1,26 @@
 :root {
-  --app-bg: #f5fbfa;
+  --app-bg: #f2f9f7;
   --app-surface: #ffffff;
-  --app-surface-strong: #f4fbfa;
+  --app-surface-strong: #f0faf8;
   --app-text: #142033;
-  --app-heading: #102a43;
+  --app-heading: #0b1e33;
   --app-muted: #5b7083;
-  --app-line: #dbece9;
-  --app-line-soft: #edf4f2;
+  --app-line: #d4e8e4;
+  --app-line-soft: #e8f3f0;
   --app-input: #ffffff;
   --app-accent: #0f766e;
   --app-accent-soft: #dff7f3;
+  --app-warm: #d97706;
+  --app-warm-soft: #fef3c7;
   --app-blue-soft: #e8f4ff;
-  --app-shadow: 0 16px 40px rgba(15, 118, 110, 0.08);
-  --app-shadow-strong: 0 20px 50px rgba(15, 118, 110, 0.14);
+  --app-shadow: 0 4px 20px rgba(15, 118, 110, 0.07), 0 1px 3px rgba(15, 118, 110, 0.04);
+  --app-shadow-strong: 0 8px 32px rgba(15, 118, 110, 0.12), 0 2px 8px rgba(15, 118, 110, 0.06);
+  --app-shadow-lg: 0 20px 60px rgba(15, 118, 110, 0.12), 0 4px 16px rgba(15, 118, 110, 0.06);
   color: #142033;
-  background: #f5fbfa;
+  background: var(--app-bg);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 :root[data-theme="dark"] {
@@ -30,9 +35,12 @@
   --app-input: #0a1b22;
   --app-accent: #7dd3c7;
   --app-accent-soft: #14383c;
+  --app-warm: #fbbf24;
+  --app-warm-soft: #451a03;
   --app-blue-soft: #102f45;
-  --app-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
-  --app-shadow-strong: 0 24px 58px rgba(0, 0, 0, 0.42);
+  --app-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), 0 1px 4px rgba(0, 0, 0, 0.15);
+  --app-shadow-strong: 0 10px 40px rgba(0, 0, 0, 0.35), 0 2px 10px rgba(0, 0, 0, 0.2);
+  --app-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.2);
   color: #edfdf9;
   background: var(--app-bg);
 }
@@ -43,17 +51,26 @@
 
 html {
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   overflow-x: hidden;
-  background: var(--app-bg);
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--app-accent) 6%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--app-accent) 5%, transparent) 0%, transparent 50%),
+    var(--app-bg);
+  background-attachment: fixed;
 }
 
 :root[data-theme="dark"] body {
-  background: var(--app-bg);
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--app-accent) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--app-accent) 5%, transparent) 0%, transparent 50%),
+    var(--app-bg);
+  background-attachment: fixed;
 }
 
 a {
@@ -99,7 +116,8 @@ button {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--app-accent) 24%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 30%, transparent);
+  color: var(--app-heading);
 }
 
 img,
@@ -121,6 +139,7 @@ svg {
 
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -136,7 +155,25 @@ svg {
   background: color-mix(in srgb, var(--app-accent) 36%, transparent);
 }
 
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 :focus-visible {
   outline: 2px solid var(--app-accent);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
