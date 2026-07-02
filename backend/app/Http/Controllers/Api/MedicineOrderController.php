@@ -21,7 +21,7 @@ class MedicineOrderController extends Controller
     {
         return response()->json([
             'medicines' => Medicine::query()
-                ->where('stock', '>', 0)
+                ->where('status', 'active')
                 ->orderBy('name')
                 ->paginate($request->integer('per_page', 50)),
         ]);

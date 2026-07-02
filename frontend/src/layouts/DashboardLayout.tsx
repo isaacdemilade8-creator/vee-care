@@ -1,7 +1,7 @@
-import { Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Settings, ShieldCheck, ShoppingBag, Stethoscope, UserRound, Users } from 'lucide-react';
+import { Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Pill, Settings, ShieldCheck, Stethoscope, UserRound, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { NotificationBell } from '../components/NotificationBell';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { useAuth } from '../context/AuthContext';
@@ -18,7 +18,7 @@ const baseLinks = [
   { to: '/profiles', label: 'Profiles', icon: UserRound, roles: routeRoles.profiles },
   { to: '/nurse/station', label: 'Nurse Station', icon: ClipboardList, roles: routeRoles.nurseStation },
   { to: '/laboratory', label: 'Laboratory', icon: FlaskConical, roles: routeRoles.laboratory },
-  { to: '/pharmacy/orders/new', label: 'Order Medicine', icon: ShoppingBag, roles: routeRoles.medicineOrders },
+  { to: '/pharmacy/requests', label: 'Pharmacy requests', icon: Pill, roles: routeRoles.pharmacyRequests },
   { to: '/enterprise', label: 'SaaS', icon: Building2, roles: routeRoles.enterprise },
 ];
 
@@ -101,19 +101,19 @@ export function DashboardLayout() {
     </div>
   );
 
-  const navVariants = {
+  const navVariants: Variants = {
     hidden: {},
     visible: {
       transition: { staggerChildren: 0.04 },
     },
   };
 
-  const navItemVariants = {
+  const navItemVariants: Variants = {
     hidden: { opacity: 0, x: -8 },
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.2, ease: 'easeOut' },
+      transition: { duration: 0.2, ease: 'easeOut' as const },
     },
   };
 

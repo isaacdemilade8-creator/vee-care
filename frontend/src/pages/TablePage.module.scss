@@ -5,6 +5,17 @@
   min-width: 0;
 }
 
+.formGroup {
+  display: grid;
+  gap: 1rem;
+}
+
+.formDivider {
+  height: 1px;
+  background: var(--app-line);
+  margin: 0.25rem 0;
+}
+
 .page {
   align-content: start;
 }
@@ -500,4 +511,85 @@
   .badge {
     font-size: 0.8rem;
   }
+}
+
+.requestCard,
+.itemRow,
+.requestHeader {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.requestCard {
+  border-top: 1px solid var(--app-line-soft);
+  padding-top: 1rem;
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+.requestHeader {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.clinicalNote,
+.requestMeta,
+.itemRow p {
+  color: var(--app-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.itemList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.itemRow {
+  align-items: center;
+  background: color-mix(in srgb, var(--app-surface-strong) 70%, transparent);
+  border: 1px solid var(--app-line-soft);
+  border-radius: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.75rem;
+
+  span {
+    color: var(--app-muted);
+    display: block;
+    font-size: 0.88rem;
+  }
+}
+
+.status-available {
+  background: color-mix(in srgb, #059669 16%, transparent);
+  color: #047857;
+}
+
+.status-unavailable {
+  background: color-mix(in srgb, #dc2626 14%, transparent);
+  color: #b91c1c;
+}
+
+.status-pending {
+  background: color-mix(in srgb, #d97706 14%, transparent);
+  color: #b45309;
+}
+
+.status-dispensed {
+  background: color-mix(in srgb, #0284c7 14%, transparent);
+  color: #0369a1;
+}
+
+.status-given {
+  background: color-mix(in srgb, #059669 14%, transparent);
+  color: #047857;
+}
+
+.badgeGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }

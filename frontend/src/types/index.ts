@@ -135,6 +135,34 @@ export interface MedicineOrder {
   created_at?: string;
 }
 
+export interface PharmacyRequestItem {
+  id: number;
+  medicationName: string;
+  dosage?: string | null;
+  quantity: number;
+  instructions?: string | null;
+  availabilityStatus: 'pending' | 'available' | 'unavailable';
+  pharmacistNote?: string | null;
+  dispenseStatus: 'pending' | 'dispensed' | 'given';
+  dispensedBy?: { id: number; name: string } | null;
+  dispensedAt?: string | null;
+  givenBy?: { id: number; name: string } | null;
+  givenAt?: string | null;
+  medicine?: Pick<Medicine, 'id' | 'name' | 'strength' | 'dosage_form'> & Partial<Pick<Medicine, 'stock'>> | null;
+}
+
+export interface PharmacyRequest {
+  id: number;
+  clinicalNote: string;
+  status: 'pending_review' | 'reviewed';
+  patient?: User;
+  doctor?: User;
+  reviewedBy?: User | null;
+  reviewedAt?: string | null;
+  items?: PharmacyRequestItem[];
+  createdAt: string;
+}
+
 export interface CareNotification {
   id: number;
   type: string;

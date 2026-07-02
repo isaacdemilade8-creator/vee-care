@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['appointment_id', 'patient_id', 'doctor_id', 'medication', 'dosage', 'instructions', 'issued_at'])]
+#[Fillable(['appointment_id', 'pharmacy_request_id', 'patient_id', 'doctor_id', 'medication', 'dosage', 'instructions', 'issued_at'])]
 class Prescription extends Model
 {
     use HasFactory;
@@ -22,6 +22,11 @@ class Prescription extends Model
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
+    }
+
+    public function pharmacyRequest(): BelongsTo
+    {
+        return $this->belongsTo(PharmacyRequest::class);
     }
 
     public function patient(): BelongsTo

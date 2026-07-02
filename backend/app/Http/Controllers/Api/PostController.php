@@ -18,6 +18,15 @@ class PostController extends Controller
     {
         $posts = $this->basePostQuery()
             ->when($request->integer('user_id'), fn ($query, $userId) => $query->where('user_id', $userId))
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $term = '%'.$request->string('search').'%';
+
+                $query->where(function ($inner) use ($term) {
+                    $inner->where('title', 'like', $term)
+                        ->orWhere('body', 'like', $term)
+                        ->orWhereHas('author', fn ($author) => $author->where('name', 'like', $term));
+                });
+            })
             ->latest()
             ->paginate($request->integer('per_page', 12));
 

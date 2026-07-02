@@ -5,10 +5,11 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Edit3, ImagePlus, MessageCircle, Newspaper, Send, Trash2 } from 'lucide-react';
+import { Edit3, ImagePlus, MessageCircle, Newspaper, Send, Trash2, UserPlus } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Card, StatCard } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
+import { TextField, SelectField } from '../components/FormField';
 import { specialtyDepartmentOptions } from '../constants/specialties';
 import { useAuth } from '../context/AuthContext';
 import { useAdminAnalytics, useAdminUsers, usePosts } from '../hooks/useApi';
@@ -60,6 +61,7 @@ export function AdminPanel() {
   const activeTab = searchParams.get('tab') === 'campaign' ? 'campaign' : 'users';
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState('doctor');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [postSearch, setPostSearch] = useState('');
   const [preview, setPreview] = useState('');
   const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -135,6 +137,17 @@ export function AdminPanel() {
     event.preventDefault();
     const form = event.currentTarget;
     const values = formValues(form);
+    const newErrors: Record<string, string> = {};
+
+    if (!values.name?.trim()) newErrors.name = 'Full name is required';
+    if (!values.email?.trim()) newErrors.email = 'Email address is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) newErrors.email = 'Invalid email format';
+    if (!values.password) newErrors.password = 'Password is required';
+    else if (values.password.length < 8) newErrors.password = 'Must be at least 8 characters';
+    if (!values.role) newErrors.role = 'Role is required';
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length) return;
 
     createUser.mutate({
       name: values.name,
@@ -143,7 +156,13 @@ export function AdminPanel() {
       role: values.role,
       specialty: values.specialty,
       phone: values.phone,
-    }, { onSuccess: () => form.reset() });
+    }, {
+      onSuccess: () => {
+        form.reset();
+        setErrors({});
+        setSelectedRole('doctor');
+      },
+    });
   };
 
   const publishPost = (event: FormEvent<HTMLFormElement>) => {
@@ -236,23 +255,73 @@ export function AdminPanel() {
             <h3>Register User</h3>
             <p>Create patient, clinical, support, and admin accounts on the shared platform.</p>
           </div>
-          <form className={styles.form} onSubmit={submitUser}>
-            <input name="name" placeholder="Full name" required />
-            <input name="email" type="email" placeholder="user@example.com" required />
-            <input name="password" type="password" placeholder="Temporary password" minLength={8} required />
-            <div className={styles.formRow}>
-              <select name="role" required value={selectedRole} onChange={(event) => setSelectedRole(event.target.value)}>
-                {roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
-              </select>
-              <select name="specialty" defaultValue="">
-                <option value="">{selectedRole === 'patient' ? 'No specialty needed' : 'Select specialty or department'}</option>
-                {specialtyDepartmentOptions.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-              <input name="phone" placeholder="Phone number" />
+          <form className={styles.form} onSubmit={submitUser} noValidate>
+            <div className={styles.formGroup}>
+              <TextField
+                label="Full name"
+                name="name"
+                placeholder="e.g. John Doe"
+                error={errors.name}
+                onChange={() => errors.name && setErrors((prev) => ({ ...prev, name: '' }))}
+              />
+              <TextField
+                label="Email address"
+                name="email"
+                type="email"
+                placeholder="e.g. john@hospital.com"
+                error={errors.email}
+                onChange={() => errors.email && setErrors((prev) => ({ ...prev, email: '' }))}
+              />
+              <TextField
+                label="Temporary password"
+                name="password"
+                type="password"
+                placeholder="At least 8 characters"
+                minLength={8}
+                error={errors.password}
+                onChange={() => errors.password && setErrors((prev) => ({ ...prev, password: '' }))}
+              />
             </div>
-            <Button disabled={createUser.isPending}>Register user</Button>
+
+            <div className={styles.formDivider} />
+
+            <div className={styles.formGroup}>
+              <div className={styles.formRow}>
+                <SelectField
+                  label="Role"
+                  name="role"
+                  value={selectedRole}
+                  onChange={(event) => {
+                    setSelectedRole(event.target.value);
+                    if (errors.role) setErrors((prev) => ({ ...prev, role: '' }));
+                  }}
+                  error={errors.role}
+                >
+                  {roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
+                </SelectField>
+                <SelectField
+                  label="Specialty / Department"
+                  name="specialty"
+                  defaultValue=""
+                >
+                  <option value="">{selectedRole === 'patient' ? 'No specialty needed' : 'Select specialty or department'}</option>
+                  {specialtyDepartmentOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </SelectField>
+                <TextField
+                  label="Phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="e.g. +1 (555) 123-4567"
+                />
+              </div>
+            </div>
+
+            <Button disabled={createUser.isPending}>
+              <UserPlus size={18} />
+              Register user
+            </Button>
           </form>
         </Card>
       </motion.div>

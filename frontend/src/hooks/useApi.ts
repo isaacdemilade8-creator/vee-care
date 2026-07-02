@@ -47,6 +47,14 @@ export function usePosts(filters?: Record<string, string>) {
   return useQuery({ queryKey: ['posts', filters], queryFn: async () => (await endpoints.posts(filters)).data });
 }
 
+export function usePrescriptions(enabled = true) {
+  return useQuery({
+    queryKey: ['prescriptions'],
+    enabled,
+    queryFn: async () => (await endpoints.prescriptions()).data,
+  });
+}
+
 export function useUserPosts(userId?: number) {
   return useQuery({
     queryKey: ['posts', { user_id: userId ? String(userId) : '' }],

@@ -14,7 +14,7 @@ export const routeRoles = {
   nurseStation: ['nurse', 'admin', 'super_admin'] satisfies Role[],
   laboratory: ['lab_technician', 'doctor', 'nurse', 'admin', 'super_admin'] satisfies Role[],
   pharmacy: ['pharmacist', 'admin', 'super_admin'] satisfies Role[],
-  medicineOrders: ['patient'] satisfies Role[],
+  pharmacyRequests: ['doctor', 'admin', 'super_admin'] satisfies Role[],
   admin: ['admin', 'super_admin'] satisfies Role[],
 };
 

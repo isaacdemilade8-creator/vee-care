@@ -15,7 +15,7 @@ import { EnterpriseModulesPage } from './pages/EnterpriseModulesPage';
 import { LandingPage } from './pages/LandingPage';
 import { LaboratoryPage } from './pages/LaboratoryPage';
 import { MedicalRecordsPage } from './pages/MedicalRecordsPage';
-import { MedicineOrderPage } from './pages/MedicineOrderPage';
+import { PharmacyRequestPage } from './pages/PharmacyRequestPage';
 import { NurseStationPage } from './pages/NurseStationPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ProfilesPage } from './pages/ProfilesPage';
@@ -68,8 +68,8 @@ export default function App() {
             <Route path="/pharmacy/inventory" element={<DrugInventoryPage />} />
             <Route path="/pharmacy/medicines/new" element={<AddMedicinePage />} />
           </Route>
-          <Route element={<ProtectedRoute roles={routeRoles.medicineOrders} />}>
-            <Route path="/pharmacy/orders/new" element={<MedicineOrderPage />} />
+          <Route element={<ProtectedRoute roles={routeRoles.pharmacyRequests} />}>
+            <Route path="/pharmacy/requests" element={<PharmacyRequestPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={routeRoles.admin} />}>
             <Route path="/admin" element={<AdminPanel />} />

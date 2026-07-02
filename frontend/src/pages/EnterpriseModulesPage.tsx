@@ -8,9 +8,9 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
-import { useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, useEnterpriseStaff, usePharmacyOrders } from '../hooks/useEnterprise';
+import { useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, useEnterpriseStaff, usePharmacyRequests } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
-import type { Appointment, MedicalRecord, MedicineOrder, Prescription, UrgentCareRequest, User, Vital } from '../types';
+import type { Appointment, MedicalRecord, PharmacyRequest, PharmacyRequestItem, Prescription, UrgentCareRequest, User, Vital } from '../types';
 import styles from './EnterpriseModulesPage.module.scss';
 
 const modules = ['patients', 'ehr', 'staff', 'pharmacy', 'lab', 'ai'] as const;
@@ -32,16 +32,38 @@ export function EnterpriseModulesPage() {
   const staff = useEnterpriseStaff('', active === 'staff' && canUseStaff);
   const ehr = useEnterpriseEhr((['ehr', 'lab', 'ai'].includes(active)) && canUseEhr, selectedPatientId);
   const pharmacy = useEnterprisePharmacy(active === 'pharmacy' && canUsePharmacy);
-  const pharmacyOrders = usePharmacyOrders('', active === 'pharmacy' && canUsePharmacy);
-  const updateOrder = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: MedicineOrder['status'] }) => endpoints.updateMedicineOrder(id, { status }),
+  const pharmacyRequests = usePharmacyRequests('', active === 'pharmacy' && canUsePharmacy);
+  const updateRequestItem = useMutation({
+    mutationFn: ({ id, availability_status }: { id: number; availability_status: 'available' | 'unavailable' }) =>
+      endpoints.updatePharmacyRequestItem(id, { availability_status }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['pharmacy-requests'] });
+      toast.success('Drug availability updated');
+    },
+  });
+  const completeRequest = useMutation({
+    mutationFn: (id: number) => endpoints.completePharmacyRequest(id),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['pharmacy-orders'] }),
-        queryClient.invalidateQueries({ queryKey: ['enterprise-pharmacy'] }),
-        queryClient.invalidateQueries({ queryKey: ['enterprise-dashboard'] }),
+        queryClient.invalidateQueries({ queryKey: ['pharmacy-requests'] }),
+        queryClient.invalidateQueries({ queryKey: ['enterprise-ehr'] }),
+        queryClient.invalidateQueries({ queryKey: ['prescriptions'] }),
       ]);
-      toast.success('Order updated');
+      toast.success('Pharmacy review completed');
+    },
+  });
+  const dispenseItem = useMutation({
+    mutationFn: (id: number) => endpoints.dispensePharmacyRequestItem(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['pharmacy-requests'] });
+      toast.success('Drug marked as dispensed');
+    },
+  });
+  const giveItem = useMutation({
+    mutationFn: (id: number) => endpoints.givePharmacyRequestItem(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['pharmacy-requests'] });
+      toast.success('Drug marked as given to patient');
     },
   });
   const createNote = useMutation({
@@ -355,23 +377,86 @@ export function EnterpriseModulesPage() {
 
       {visibleActive === 'pharmacy' ? (
         <Card>
-          <h2>Medicine pickup queue</h2>
-          {(pharmacyOrders.data?.orders?.data ?? []).map((order: MedicineOrder) => (
-            <article className={styles.row} key={order.id}>
-              <div>
-                <strong>{order.medicine?.name ?? 'Medicine order'} x {order.quantity}</strong>
-                <span>{order.patient?.name ?? 'Patient'} | Pickup: {order.pickup_code}</span>
-                {order.notes ? <p>{order.notes}</p> : null}
-              </div>
-              <div className={styles.orderActions}>
-                <span className={styles.badge}>{order.status}</span>
-                {order.status === 'pending' ? <Button variant="secondary" onClick={() => updateOrder.mutate({ id: order.id, status: 'preparing' })}>Prepare</Button> : null}
-                {order.status === 'preparing' ? <Button onClick={() => updateOrder.mutate({ id: order.id, status: 'ready' })}>Mark ready</Button> : null}
-                {order.status === 'ready' ? <Button onClick={() => updateOrder.mutate({ id: order.id, status: 'completed' })}>Picked up</Button> : null}
-              </div>
-            </article>
-          ))}
-          {!pharmacyOrders.data?.orders?.data?.length ? <p>No medicine pickup orders yet.</p> : null}
+          <h2>Doctor pharmacy requests</h2>
+          {(pharmacyRequests.data?.data ?? []).map((request: PharmacyRequest) => {
+            const pendingItems = (request.items ?? []).filter((item) => item.availabilityStatus === 'pending').length;
+            const canComplete = request.status === 'pending_review' && pendingItems === 0 && (request.items?.length ?? 0) > 0;
+
+            function dispenseLabel(status: PharmacyRequestItem['dispenseStatus']) {
+              if (status === 'given') return 'Given to patient';
+              if (status === 'dispensed') return 'Ready for pickup';
+              return 'Pending dispense';
+            }
+
+            return (
+              <article className={styles.row} key={request.id}>
+                <div>
+                  <strong>{request.patient?.name ?? 'Patient'}</strong>
+                  <span>Doctor: {request.doctor?.name ?? 'Doctor'} · {request.status === 'reviewed' ? 'Reviewed' : 'Pending review'}</span>
+                  <p>{request.clinicalNote}</p>
+                  <div className={styles.drugList}>
+                    {(request.items ?? []).map((item: PharmacyRequestItem) => (
+                      <div className={styles.drugRow} key={item.id}>
+                        <div>
+                          <strong>{item.medicationName}</strong>
+                          <span>
+                            {item.dosage ? `${item.dosage} · ` : ''}
+                            Qty {item.quantity}
+                            {item.medicine ? ` · Stock ${item.medicine.stock}` : ''}
+                          </span>
+                        </div>
+                        <div>
+                          {request.status === 'pending_review' ? (
+                            <div className={styles.orderActions}>
+                              <Button
+                                variant={item.availabilityStatus === 'available' ? undefined : 'secondary'}
+                                disabled={updateRequestItem.isPending}
+                                onClick={() => updateRequestItem.mutate({ id: item.id, availability_status: 'available' })}
+                              >
+                                Available
+                              </Button>
+                              <Button
+                                variant={item.availabilityStatus === 'unavailable' ? undefined : 'secondary'}
+                                disabled={updateRequestItem.isPending}
+                                onClick={() => updateRequestItem.mutate({ id: item.id, availability_status: 'unavailable' })}
+                              >
+                                Unavailable
+                              </Button>
+                            </div>
+                          ) : item.availabilityStatus === 'available' ? (
+                            <div className={styles.orderActions}>
+                              {item.dispenseStatus === 'pending' ? (
+                                <Button disabled={dispenseItem.isPending} onClick={() => dispenseItem.mutate(item.id)}>
+                                  Dispense
+                                </Button>
+                              ) : null}
+                              {item.dispenseStatus === 'dispensed' ? (
+                                <Button disabled={giveItem.isPending} onClick={() => giveItem.mutate(item.id)}>
+                                  Give to patient
+                                </Button>
+                              ) : null}
+                              <span className={styles.badge}>{dispenseLabel(item.dispenseStatus)}</span>
+                            </div>
+                          ) : (
+                            <span className={styles.badge}>{item.availabilityStatus}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {request.status === 'pending_review' ? (
+                  <div className={styles.orderActions}>
+                    <span className={styles.badge}>{pendingItems ? `${pendingItems} drugs pending` : 'Ready to finalize'}</span>
+                    <Button disabled={!canComplete || completeRequest.isPending} onClick={() => completeRequest.mutate(request.id)}>
+                      Complete review
+                    </Button>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+          {!pharmacyRequests.data?.data?.length ? <p>No doctor pharmacy requests yet.</p> : null}
         </Card>
       ) : null}
 

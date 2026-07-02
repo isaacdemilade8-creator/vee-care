@@ -3,12 +3,13 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform, type Variants } from 'framer-motion';
 import { HeartPulse } from 'lucide-react';
 import { Button } from '../components/Button';
 import { SelectField, TextField } from '../components/FormField';
 import { useAuth } from '../context/AuthContext';
 import { endpoints } from '../services/endpoints';
+import { getApiErrorMessage } from '../utils/apiError';
 import styles from './AuthPage.module.scss';
 
 const schema = z
@@ -27,7 +28,7 @@ const schema = z
 type AuthFormInput = z.input<typeof schema>;
 type AuthForm = z.output<typeof schema>;
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -35,12 +36,12 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 18 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: 'easeOut' },
+    transition: { duration: 0.4, ease: 'easeOut' as const },
   },
 };
 
@@ -77,10 +78,14 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   };
 
   const onSubmit = async (values: AuthForm) => {
-    const response = isRegister ? await endpoints.register(values) : await endpoints.login(values);
-    setSession(response.data.user, response.data.token);
-    toast.success(isRegister ? 'Account created' : 'Welcome back');
-    navigate('/dashboard');
+    try {
+      const response = isRegister ? await endpoints.register(values) : await endpoints.login(values);
+      setSession(response.data.user, response.data.token);
+      toast.success(isRegister ? 'Account created' : 'Welcome back');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Authentication failed'));
+    }
   };
 
   return (

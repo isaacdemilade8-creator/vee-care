@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\MedicineOrderController;
+use App\Http\Controllers\Api\PharmacyRequestController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\PractitionerReviewController;
 use App\Http\Controllers\Api\PrescriptionController;
@@ -52,7 +53,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
     Route::post('/medical-records', [MedicalRecordController::class, 'store'])
         ->middleware('role:patient,doctor,nurse,lab_technician,admin');
     Route::get('/prescriptions', [PrescriptionController::class, 'index'])
-        ->middleware('role:doctor,patient,admin');
+        ->middleware('role:doctor,patient,admin,super_admin');
     Route::post('/prescriptions', [PrescriptionController::class, 'store'])
         ->middleware('role:doctor');
 
@@ -73,12 +74,20 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
 
     Route::prefix('pharmacy')->group(function (): void {
         Route::get('/medicines', [MedicineOrderController::class, 'medicines'])
-            ->middleware('role:patient,admin,pharmacist,super_admin');
-        Route::get('/orders', [MedicineOrderController::class, 'index'])
-            ->middleware('role:patient,admin,pharmacist,super_admin');
-        Route::post('/orders', [MedicineOrderController::class, 'store'])
-            ->middleware('role:patient');
-        Route::patch('/orders/{medicineOrder}', [MedicineOrderController::class, 'update'])
+            ->middleware('role:doctor,admin,pharmacist,super_admin');
+        Route::get('/requests', [PharmacyRequestController::class, 'index'])
+            ->middleware('role:doctor,patient,admin,pharmacist,super_admin');
+        Route::post('/requests', [PharmacyRequestController::class, 'store'])
+            ->middleware('role:doctor');
+        Route::get('/requests/{pharmacyRequest}', [PharmacyRequestController::class, 'show'])
+            ->middleware('role:doctor,patient,admin,pharmacist,super_admin');
+        Route::patch('/requests/items/{pharmacyRequestItem}', [PharmacyRequestController::class, 'updateItem'])
+            ->middleware('role:admin,pharmacist,super_admin');
+        Route::post('/requests/items/{pharmacyRequestItem}/dispense', [PharmacyRequestController::class, 'dispenseItem'])
+            ->middleware('role:admin,pharmacist,super_admin');
+        Route::post('/requests/items/{pharmacyRequestItem}/give', [PharmacyRequestController::class, 'giveItem'])
+            ->middleware('role:admin,pharmacist,super_admin');
+        Route::post('/requests/{pharmacyRequest}/complete', [PharmacyRequestController::class, 'completeReview'])
             ->middleware('role:admin,pharmacist,super_admin');
     });
 
