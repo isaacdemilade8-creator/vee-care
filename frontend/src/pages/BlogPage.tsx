@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, HeartPulse, MessageCircle, Search, Send } from 'lucide-react';
+import { ArrowRight, ChevronDown, HeartPulse, MessageCircle, Search, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
+import { DataStatePanel } from '../components/DataStatePanel';
 import { useAuth } from '../context/AuthContext';
 import { usePosts } from '../hooks/useApi';
 import { endpoints } from '../services/endpoints';
@@ -26,9 +27,13 @@ function excerpt(body: string, length = 210) {
   return body.length > length ? `${body.slice(0, length).trim()}...` : body;
 }
 
+function articleAlt(post: Post) {
+  return post.title?.trim() || 'Vee-care Journal article image';
+}
+
 function ArticleImage({ post }: { post: Post }) {
   if (post.imageUrl) {
-    return <img src={post.imageUrl} alt="" />;
+    return <img src={post.imageUrl} alt={articleAlt(post)} />;
   }
 
   return (
@@ -38,9 +43,10 @@ function ArticleImage({ post }: { post: Post }) {
   );
 }
 
-function CommentArea({ post }: { post: Post }) {
+function CommentArea({ post, defaultOpen = false }: { post: Post; defaultOpen?: boolean }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const [open, setOpen] = useState(defaultOpen);
   const [comment, setComment] = useState('');
   const commentPost = useMutation({
     mutationFn: () => endpoints.commentPost(post.id, { body: comment }),
@@ -53,39 +59,58 @@ function CommentArea({ post }: { post: Post }) {
 
   return (
     <div className={styles.commentBlock}>
-      <div className={styles.commentHeader}>
-        <MessageCircle size={17} />
-        <span>{post.counts.comments} comments</span>
-      </div>
-      {post.comments?.length ? (
-        <div className={styles.comments}>
-          {post.comments.map((item) => (
-            <article key={item.id}>
-              <span>{item.author.name}</span>
-              <p>{item.body}</p>
-            </article>
-          ))}
-        </div>
+      <button
+        type="button"
+        className={styles.commentToggle}
+        aria-expanded={open ? 'true' : 'false'}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className={styles.commentHeader}>
+          <MessageCircle size={17} />
+          <span>{post.counts.comments} comments</span>
+        </span>
+        <ChevronDown size={17} className={open ? styles.commentChevronOpen : styles.commentChevron} />
+      </button>
+      {open ? (
+        <>
+          {post.comments?.length ? (
+            <div className={styles.comments}>
+              {post.comments.map((item) => (
+                <article key={item.id}>
+                  <span>{item.author.name}</span>
+                  <p>{item.body}</p>
+                </article>
+              ))}
+            </div>
+          ) : null}
+          {user ? (
+            <form
+              className={styles.commentForm}
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (comment.trim()) {
+                  commentPost.mutate();
+                }
+              }}
+            >
+              <input
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                placeholder="Write a comment"
+                aria-label="Write a comment"
+              />
+              <Button aria-label="Post comment" disabled={commentPost.isPending || !comment.trim()}>
+                {commentPost.isPending ? 'Posting…' : <Send size={16} />}
+              </Button>
+            </form>
+          ) : (
+            <div className={styles.commentPrompt}>
+              <span>Join the discussion</span>
+              <Link to="/login">Login to comment</Link>
+            </div>
+          )}
+        </>
       ) : null}
-      {user ? (
-        <form
-          className={styles.commentForm}
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (comment.trim()) {
-              commentPost.mutate();
-            }
-          }}
-        >
-          <input value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Write a comment" />
-          <Button aria-label="Comment" disabled={commentPost.isPending || !comment.trim()}><Send size={16} /></Button>
-        </form>
-      ) : (
-        <div className={styles.commentPrompt}>
-          <span>Join the discussion</span>
-          <Link to="/login">Login to comment</Link>
-        </div>
-      )}
     </div>
   );
 }
@@ -106,11 +131,11 @@ function ArticleCard({ post, featured = false }: { post: Post; featured?: boolea
           <span>{readingTime(post)}</span>
         </div>
         <h2>{post.title || 'Care update'}</h2>
-        <p>{featured ? post.body : excerpt(post.body)}</p>
+        <p>{featured ? excerpt(post.body, 420) : excerpt(post.body)}</p>
         <div className={styles.articleFooter}>
           <span>By {post.author.name}</span>
         </div>
-        <CommentArea post={post} />
+        <CommentArea post={post} defaultOpen={featured} />
       </div>
     </motion.article>
   );
@@ -118,18 +143,16 @@ function ArticleCard({ post, featured = false }: { post: Post; featured?: boolea
 
 export function BlogPage() {
   const [search, setSearch] = useState('');
-  const posts = usePosts({ per_page: '24' });
+  const searchQuery = search.trim();
+  const postFilters = useMemo(
+    () => ({ per_page: '24', ...(searchQuery ? { search: searchQuery } : {}) }),
+    [searchQuery],
+  );
+  const posts = usePosts(postFilters);
   const postRows = useMemo(() => posts.data?.data ?? [], [posts.data?.data]);
-  const visiblePosts = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return postRows.filter((post) => {
-      const haystack = `${post.title ?? ''} ${post.body} ${post.author.name}`.toLowerCase();
-      return !query || haystack.includes(query);
-    });
-  }, [postRows, search]);
-  const featuredPost = visiblePosts[0];
-  const latestPosts = visiblePosts.slice(featuredPost ? 1 : 0);
+  const featuredPost = postRows[0];
+  const latestPosts = postRows.slice(featuredPost ? 1 : 0);
+  const hasSearch = Boolean(searchQuery);
 
   return (
     <main className={styles.page}>
@@ -161,32 +184,38 @@ export function BlogPage() {
         </motion.label>
       </section>
 
-      {posts.isLoading ? <SkeletonRows rows={5} /> : (
+      {posts.isLoading ? <SkeletonRows rows={5} /> : posts.isError ? (
+        <DataStatePanel title="Could not load articles" description="Check your connection and try again." action={<Button onClick={() => posts.refetch()}>Retry</Button>} />
+      ) : (
         <section className={styles.contentShell}>
-          {featuredPost ? <ArticleCard post={featuredPost} featured /> : (
-            <Card className={styles.emptyState}>
-              <h2>No posts yet</h2>
-              <p>Admin-published health articles will appear here.</p>
-            </Card>
+          {postRows.length === 0 ? (
+            hasSearch ? (
+              <Card className={styles.emptyState}>
+                <h2>No matching articles</h2>
+                <p>Try a different keyword.</p>
+              </Card>
+            ) : (
+              <Card className={styles.emptyState}>
+                <h2>No posts yet</h2>
+                <p>Admin-published health articles will appear here.</p>
+              </Card>
+            )
+          ) : (
+            <>
+              {featuredPost ? <ArticleCard post={featuredPost} featured /> : null}
+
+              {latestPosts.length ? (
+                <div className={styles.latestHeader}>
+                  <h2>Latest articles</h2>
+                  <span>{latestPosts.length} posts</span>
+                </div>
+              ) : null}
+
+              <motion.div layout className={styles.articleGrid}>
+                {latestPosts.map((post) => <ArticleCard key={post.id} post={post} />)}
+              </motion.div>
+            </>
           )}
-
-          {latestPosts.length ? (
-            <div className={styles.latestHeader}>
-              <h2>Latest articles</h2>
-              <span>{latestPosts.length} posts</span>
-            </div>
-          ) : null}
-
-          <motion.div layout className={styles.articleGrid}>
-            {latestPosts.map((post) => <ArticleCard key={post.id} post={post} />)}
-          </motion.div>
-
-          {visiblePosts.length === 0 && postRows.length ? (
-            <Card className={styles.emptyState}>
-              <h2>No matching articles</h2>
-              <p>Try a different keyword.</p>
-            </Card>
-          ) : null}
         </section>
       )}
 

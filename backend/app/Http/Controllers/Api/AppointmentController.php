@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\AppointmentResource;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Services\AuditService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -48,7 +49,7 @@ class AppointmentController extends Controller
         return AppointmentResource::collection($query->paginate($request->integer('per_page', 10)));
     }
 
-    public function store(Request $request, NotificationService $notifications): AppointmentResource
+    public function store(Request $request, AuditService $audit, NotificationService $notifications): AppointmentResource
     {
         $data = $request->validate([
             'doctor_id' => ['required', 'exists:users,id'],
@@ -70,6 +71,7 @@ class AppointmentController extends Controller
 
         $appointment->load(['patient', 'doctor']);
 
+        $audit->record($request, 'appointment.created', $appointment);
         $notifications->send(
             $appointment->doctor,
             'appointment.booked',
@@ -81,7 +83,7 @@ class AppointmentController extends Controller
         return new AppointmentResource($appointment);
     }
 
-    public function update(Request $request, Appointment $appointment, NotificationService $notifications): AppointmentResource
+    public function update(Request $request, AuditService $audit, Appointment $appointment, NotificationService $notifications): AppointmentResource
     {
         $user = $request->user();
         abort_unless(
@@ -99,6 +101,14 @@ class AppointmentController extends Controller
         $appointment->update($data);
         $appointment->load(['patient', 'doctor', 'prescription']);
 
+        $action = match ($appointment->status) {
+            'approved' => 'appointment.approved',
+            'rejected' => 'appointment.rejected',
+            'completed' => 'appointment.completed',
+            default => 'appointment.updated',
+        };
+
+        $audit->record($request, $action, $appointment, ['status' => $appointment->status]);
         $notifications->send(
             $appointment->patient,
             'appointment.status_changed',

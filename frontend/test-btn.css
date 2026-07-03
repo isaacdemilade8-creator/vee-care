@@ -11,21 +11,18 @@
   position: relative;
   text-align: center;
   transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 160ms ease, box-shadow 160ms ease, background-position 400ms ease;
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
-  }
-
-  &:not(:disabled):hover {
-    box-shadow: 0 12px 28px rgba(15, 118, 110, 0.2);
-    transform: translateY(-2px);
-  }
-
-  &:focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--app-accent) 35%, transparent);
-    outline-offset: 2px;
-  }
+}
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.button:not(:disabled):hover {
+  box-shadow: 0 12px 28px rgba(15, 118, 110, 0.2);
+  transform: translateY(-2px);
+}
+.button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--app-accent) 35%, transparent);
+  outline-offset: 2px;
 }
 
 @media (max-width: 420px) {
@@ -34,17 +31,15 @@
     padding: 0.65rem 0.85rem;
   }
 }
-
 .primary {
   background: linear-gradient(135deg, #0f766e, #0e9388, #14b8a6, #0b6b64);
   background-size: 200% 100%;
   background-position: 0% 50%;
   color: #ffffff;
-
-  &:not(:disabled):hover {
-    background-position: 100% 50%;
-    box-shadow: 0 14px 32px rgba(15, 118, 110, 0.35);
-  }
+}
+.primary:not(:disabled):hover {
+  background-position: 100% 50%;
+  box-shadow: 0 14px 32px rgba(15, 118, 110, 0.35);
 }
 
 .secondary {
@@ -61,9 +56,8 @@
 @media (prefers-reduced-motion: reduce) {
   .button {
     transition: none;
-
-    &:not(:disabled):hover {
-      transform: none;
-    }
+  }
+  .button:not(:disabled):hover {
+    transform: none;
   }
 }

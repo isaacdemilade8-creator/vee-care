@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\MedicalRecordResource;
 use App\Models\MedicalRecord;
 use App\Models\User;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -30,7 +31,7 @@ class MedicalRecordController extends Controller
         return MedicalRecordResource::collection($query->paginate($request->integer('per_page', 10)));
     }
 
-    public function store(Request $request): MedicalRecordResource
+    public function store(Request $request, AuditService $audit): MedicalRecordResource
     {
         $user = $request->user();
         $data = $request->validate([
@@ -60,6 +61,8 @@ class MedicalRecordController extends Controller
             'file_path' => $path,
             'file_type' => $request->file('file')->getMimeType(),
         ]);
+
+        $audit->record($request, 'medical_record.created', $record);
 
         return new MedicalRecordResource($record->load(['patient', 'uploader']));
     }

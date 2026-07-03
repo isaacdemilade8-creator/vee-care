@@ -212,8 +212,7 @@
 }
 
 .meta,
-.articleFooter,
-.commentHeader {
+.articleFooter {
   align-items: center;
   color: var(--journal-muted);
   display: flex;
@@ -289,9 +288,39 @@
   padding: 0.85rem;
 }
 
+.commentToggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  gap: 0.55rem;
+  justify-content: space-between;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
 .commentHeader {
+  align-items: center;
   color: var(--journal-accent);
+  display: inline-flex;
   font-weight: 950;
+  gap: 0.45rem;
+}
+
+.commentChevron {
+  color: var(--journal-accent);
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+
+.commentChevronOpen {
+  color: var(--journal-accent);
+  flex-shrink: 0;
+  transform: rotate(180deg);
+  transition: transform 180ms ease;
 }
 
 .comments {

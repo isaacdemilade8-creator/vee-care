@@ -41,11 +41,11 @@ export function usePharmacyMedicines(enabled = true) {
   });
 }
 
-export function usePharmacyOrders(status = '', enabled = true) {
+export function usePharmacyRequests(status = '', enabled = true) {
   return useQuery({
-    queryKey: ['pharmacy-orders', status],
+    queryKey: ['pharmacy-requests', status],
     enabled,
-    queryFn: async () => (await endpoints.pharmacyOrders(status ? { status } : undefined)).data,
+    queryFn: async () => (await endpoints.pharmacyRequests(status ? { status } : undefined)).data,
   });
 }
 

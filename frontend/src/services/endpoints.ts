@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Analytics, Appointment, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, MedicineOrder, Message, Paginated, PatientProfile, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
+import type { Analytics, Appointment, AuditLog, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
 
 export const endpoints = {
   login: (payload: { email: string; password: string }) => api.post<{ user: User; token: string }>('/auth/login', payload),
@@ -51,9 +51,13 @@ export const endpoints = {
   enterpriseLabTests: (params?: Record<string, string>) => api.get<Paginated<LabTest>>('/enterprise/lab-tests', { params }),
   enterprisePharmacy: (params?: Record<string, string>) => api.get('/enterprise/pharmacy', { params }),
   pharmacyMedicines: (params?: Record<string, string>) => api.get<{ medicines: Paginated<Medicine> }>('/pharmacy/medicines', { params }),
-  pharmacyOrders: (params?: Record<string, string>) => api.get<{ orders: Paginated<MedicineOrder> }>('/pharmacy/orders', { params }),
-  createMedicineOrder: (payload: unknown) => api.post<{ message: string; order: MedicineOrder }>('/pharmacy/orders', payload),
-  updateMedicineOrder: (id: number, payload: unknown) => api.patch<{ message: string; order: MedicineOrder }>(`/pharmacy/orders/${id}`, payload),
+  pharmacyRequests: (params?: Record<string, string>) => api.get<Paginated<PharmacyRequest>>('/pharmacy/requests', { params }),
+  createPharmacyRequest: (payload: unknown) => api.post<{ message: string; request: PharmacyRequest }>('/pharmacy/requests', payload),
+  updatePharmacyRequestItem: (id: number, payload: { availability_status: 'available' | 'unavailable'; pharmacist_note?: string | null }) =>
+    api.patch<{ message: string; request: PharmacyRequest }>(`/pharmacy/requests/items/${id}`, payload),
+  completePharmacyRequest: (id: number) => api.post<{ message: string; request: PharmacyRequest }>(`/pharmacy/requests/${id}/complete`),
+  dispensePharmacyRequestItem: (id: number) => api.post<{ message: string; request: PharmacyRequest }>(`/pharmacy/requests/items/${id}/dispense`),
+  givePharmacyRequestItem: (id: number) => api.post<{ message: string; request: PharmacyRequest }>(`/pharmacy/requests/items/${id}/give`),
   aiPatientSummary: (payload: { patient_id: number }) => api.post('/enterprise/ai/patient-summary', payload),
   createEhrEntry: (payload: unknown) => api.post('/enterprise/ehr/entries', payload),
   recordVitals: (payload: unknown) => api.post<Vital>('/enterprise/vitals', payload),
@@ -66,4 +70,5 @@ export const endpoints = {
   registerStaff: (payload: unknown) => api.post<User>('/enterprise/staff', payload),
   inviteStaff: (payload: unknown) => api.post<User>('/enterprise/staff/invitations', payload),
   emergencyRequest: (payload: unknown) => api.post<UrgentCareRequest>('/urgent-care-requests', payload),
+  auditLogs: (params?: Record<string, string>) => api.get<Paginated<AuditLog>>('/audit-logs', { params }),
 };

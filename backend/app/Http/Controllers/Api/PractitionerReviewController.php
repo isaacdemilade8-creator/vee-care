@@ -7,6 +7,7 @@ use App\Http\Resources\PractitionerReviewResource;
 use App\Models\Appointment;
 use App\Models\PractitionerReview;
 use App\Models\User;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -23,7 +24,7 @@ class PractitionerReviewController extends Controller
         return PractitionerReviewResource::collection($reviews);
     }
 
-    public function store(User $user, Request $request): PractitionerReviewResource
+    public function store(User $user, Request $request, AuditService $audit): PractitionerReviewResource
     {
         abort_unless($request->user()->isRole('patient'), 403);
         abort_unless($user->isRole('doctor', 'nurse', 'lab_technician', 'pharmacist'), 422, 'Only practitioners can be reviewed.');
@@ -49,6 +50,8 @@ class PractitionerReviewController extends Controller
                 'comment' => $data['comment'] ?? null,
             ]
         );
+
+        $audit->record($request, 'review.created', $review);
 
         return new PractitionerReviewResource($review->load(['patient', 'practitioner']));
     }

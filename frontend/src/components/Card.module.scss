@@ -1,14 +1,14 @@
 .card {
-  background: var(--app-surface);
+  background: linear-gradient(135deg, var(--app-surface) 0%, color-mix(in srgb, var(--app-accent) 1.5%, var(--app-surface)) 100%);
   border: 1px solid var(--app-line);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: var(--app-shadow);
   color: var(--app-text);
   min-width: 0;
   overflow: hidden;
-  padding: 1rem;
+  padding: 1.25rem;
   position: relative;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: border-color 200ms ease, box-shadow 300ms ease, transform 300ms ease;
 
   &::before {
     content: '';
@@ -17,20 +17,26 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-accent) 40%, transparent));
-    opacity: 0.3;
-    transition: opacity 180ms ease;
+    background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-warm) 50%, var(--app-accent)), color-mix(in srgb, var(--app-accent) 30%, transparent));
+    opacity: 0.6;
+    transition: opacity 300ms ease;
   }
 
   &:hover {
-    border-color: color-mix(in srgb, var(--app-accent) 28%, var(--app-line));
+    border-color: color-mix(in srgb, var(--app-accent) 38%, var(--app-line));
     box-shadow: var(--app-shadow-strong);
-    transform: translateY(-1px);
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, var(--app-surface) 0%, color-mix(in srgb, var(--app-accent) 2.5%, var(--app-surface)) 100%);
 
     &::before {
       opacity: 1;
     }
   }
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .statIcon {
@@ -66,7 +72,7 @@
 
 @media (max-width: 420px) {
   .card {
-    padding: 0.85rem;
+    padding: 1rem;
   }
 
   .value {

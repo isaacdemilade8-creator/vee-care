@@ -2,7 +2,7 @@ import type { FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Edit3, LogOut, Moon, UserRound } from 'lucide-react';
+import { Activity, Edit3, LogOut, Moon, UserRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -113,6 +113,17 @@ export function SettingsPage() {
             </div>
           </div>
           <Button variant="secondary" onClick={toggleDarkMode}>Toggle dark mode</Button>
+        </Card>
+
+        <Card>
+          <div className={styles.sectionTitle}>
+            <Activity />
+            <div>
+              <h3>Activity Log</h3>
+              <p>View your recent activity and audit trail.</p>
+            </div>
+          </div>
+          <Link to="/activity-log"><Button variant="secondary">View activity log</Button></Link>
         </Card>
       </div>
 

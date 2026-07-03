@@ -1,16 +1,47 @@
 .shell {
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--app-accent) 10%, transparent), transparent 24rem),
-    radial-gradient(circle at bottom left, color-mix(in srgb, var(--app-accent) 8%, transparent), transparent 20rem),
+    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--app-accent) 12%, transparent) 0%, transparent 28rem),
+    radial-gradient(circle at 80% 100%, color-mix(in srgb, var(--app-accent) 8%, transparent) 0%, transparent 24rem),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--app-accent) 3%, transparent) 0%, transparent 60rem),
     var(--app-bg);
   display: grid;
   min-height: 100vh;
   width: 100%;
+  position: relative;
+  z-index: 0;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: -25rem;
+    right: -10rem;
+    width: 55rem;
+    height: 55rem;
+    background: radial-gradient(circle, color-mix(in srgb, var(--app-accent) 16%, transparent) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(100px);
+  }
+
+  &::after {
+    content: '';
+    position: fixed;
+    bottom: -15rem;
+    left: -10rem;
+    width: 40rem;
+    height: 40rem;
+    background: radial-gradient(circle, color-mix(in srgb, #3b82f6 10%, transparent) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(100px);
+  }
 }
 
 .sidebar {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 7%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 9%, transparent) 0%, transparent 50%),
     color-mix(in srgb, var(--app-surface) 96%, var(--app-accent) 4%);
   border-top: 1px solid var(--app-line);
   border-right: 1px solid rgba($color: #000000, $alpha: 0.1);
@@ -171,9 +202,11 @@
 
 .topbar {
   align-items: center;
-  background: color-mix(in srgb, var(--app-surface) 84%, transparent);
-  border: 1px solid var(--app-line);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--app-surface) 78%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--app-line) 80%, transparent);
+  border-radius: 12px;
   box-shadow: var(--app-shadow);
   display: flex;
   justify-content: space-between;

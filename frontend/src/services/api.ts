@@ -1,5 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export const TOKEN_KEY = 'healthtech_token';
 
@@ -19,7 +20,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message = error.response?.data?.message ?? 'Something went wrong. Please try again.';
+    const message = getApiErrorMessage(error);
     if (error.response?.status !== 401) {
       toast.error(message);
     }

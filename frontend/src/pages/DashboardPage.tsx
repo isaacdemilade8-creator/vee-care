@@ -7,8 +7,8 @@ import {
   FlaskConical,
   MessageCircle,
   PackageCheck,
+  Pill,
   ShieldCheck,
-  ShoppingBag,
   Stethoscope,
   Users,
   Video,
@@ -22,7 +22,7 @@ import { SkeletonRows } from '../components/Skeleton';
 import { specialtyDepartmentOptions } from '../constants/specialties';
 import { useAuth } from '../context/AuthContext';
 import { useAdminAnalytics, useAppointments, useMedicalRecords } from '../hooks/useApi';
-import { useEnterpriseDashboard, useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, usePharmacyOrders } from '../hooks/useEnterprise';
+import { useEnterpriseDashboard, useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, usePharmacyRequests } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
 import type { Appointment, Role } from '../types';
 import styles from './DashboardPage.module.scss';
@@ -125,7 +125,7 @@ export function DashboardPage() {
   const patients = useEnterprisePatients('', needsPatients);
   const ehr = useEnterpriseEhr(needsEhr);
   const pharmacy = useEnterprisePharmacy(needsPharmacy);
-  const pharmacyOrders = usePharmacyOrders('', needsPharmacy);
+  const pharmacyRequests = usePharmacyRequests('', needsPharmacy);
 
   if ((needsAppointments && appointments.isLoading) || (needsEnterpriseStats && enterprise.isLoading)) {
     return <SkeletonRows rows={5} />;
@@ -241,6 +241,10 @@ export function DashboardPage() {
             onSubmit={(values) => endpoints.createEhrEntry(values)}
           />
         </div>
+        <div className={styles.actions}>
+          <QuickAction to="/pharmacy/requests" icon={Pill} label="Send pharmacy request" />
+          <QuickAction to="/enterprise/modules?module=ehr" icon={FileText} label="Patient EHR" />
+        </div>
       </div>
     ),
     nurse: (
@@ -297,7 +301,6 @@ export function DashboardPage() {
         <div className={styles.actions}>
           <QuickAction to="/records" icon={FileText} label="View records" />
           <QuickAction to="/chat" icon={MessageCircle} label="Message doctor" />
-          <QuickAction to="/pharmacy/orders/new" icon={ShoppingBag} label="Order medicine" />
           <WorkflowCard
             title="Emergency contact"
             description="Queue an urgent triage request for the care desk."
@@ -375,13 +378,13 @@ export function DashboardPage() {
         <div className={styles.grid}>
           <StatCard label="Low stock" value={enterpriseStats?.lowStock ?? 0} />
           <StatCard label="Inventory items" value={pharmacy.data?.medicines?.data?.length ?? 0} />
-          <StatCard label="Fulfillment queue" value={pharmacyOrders.data?.orders?.data?.filter((order) => ['pending', 'preparing'].includes(order.status)).length ?? 0} />
+          <StatCard label="Review queue" value={pharmacyRequests.data?.data?.filter((request) => request.status === 'pending_review').length ?? 0} />
           <StatCard label="Drug alerts" value="2" />
         </div>
         <div className={styles.actions}>
           <QuickAction to="/pharmacy/inventory" icon={Boxes} label="Drug inventory" />
           <QuickAction to="/pharmacy/medicines/new" icon={PackageCheck} label="Add medicine" />
-          <QuickAction to="/enterprise/modules?module=pharmacy" icon={ShoppingBag} label="Pickup orders" />
+          <QuickAction to="/enterprise/modules?module=pharmacy" icon={Pill} label="Pharmacy requests" />
           <WorkflowCard
             title="Adjust stock"
             description="Record dispense, restock, expiry removal, or correction."

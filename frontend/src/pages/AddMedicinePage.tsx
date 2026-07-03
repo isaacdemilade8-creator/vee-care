@@ -8,6 +8,22 @@ import { Card } from '../components/Card';
 import { endpoints } from '../services/endpoints';
 import styles from './AddMedicinePage.module.scss';
 
+type CreateMedicinePayload = {
+  name: string;
+  sku: string | null;
+  stock: number;
+  reorder_level: number;
+  unit_price: number;
+  category: string | null;
+  dosage_form: string | null;
+  strength: string | null;
+  manufacturer: string | null;
+  batch_number: string | null;
+  storage_location: string | null;
+  status: 'active';
+  expires_at: string | null;
+};
+
 function formValues(form: HTMLFormElement) {
   return Object.fromEntries(new FormData(form)) as Record<string, string>;
 }
@@ -16,14 +32,14 @@ export function AddMedicinePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createMedicine = useMutation({
-    mutationFn: (payload: unknown) => endpoints.createMedicine(payload),
+    mutationFn: (payload: CreateMedicinePayload) => endpoints.createMedicine(payload),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['enterprise-pharmacy'] }),
         queryClient.invalidateQueries({ queryKey: ['enterprise-dashboard'] }),
       ]);
       toast.success('Medicine added');
-      navigate('/dashboard');
+      navigate('/pharmacy/inventory');
     },
   });
 

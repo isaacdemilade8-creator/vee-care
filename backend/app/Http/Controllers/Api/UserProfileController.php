@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\Rule;
@@ -38,7 +39,7 @@ class UserProfileController extends Controller
         return new UserResource($user->loadCount(['followers', 'following', 'practitionerReviews'])->loadAvg('practitionerReviews', 'rating'));
     }
 
-    public function update(Request $request): UserResource
+    public function update(Request $request, AuditService $audit): UserResource
     {
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
@@ -53,6 +54,8 @@ class UserProfileController extends Controller
         ]);
 
         $request->user()->update($data);
+
+        $audit->record($request, 'profile.updated');
 
         return new UserResource($request->user()->fresh()->loadCount(['followers', 'following', 'practitionerReviews'])->loadAvg('practitionerReviews', 'rating'));
     }

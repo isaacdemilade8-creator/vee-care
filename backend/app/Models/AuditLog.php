@@ -16,4 +16,9 @@ class AuditLog extends Model
     {
         return ['metadata' => 'array'];
     }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

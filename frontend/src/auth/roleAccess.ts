@@ -14,8 +14,9 @@ export const routeRoles = {
   nurseStation: ['nurse', 'admin', 'super_admin'] satisfies Role[],
   laboratory: ['lab_technician', 'doctor', 'nurse', 'admin', 'super_admin'] satisfies Role[],
   pharmacy: ['pharmacist', 'admin', 'super_admin'] satisfies Role[],
-  medicineOrders: ['patient'] satisfies Role[],
+  pharmacyRequests: ['doctor', 'admin', 'super_admin'] satisfies Role[],
   admin: ['admin', 'super_admin'] satisfies Role[],
+  activityLog: ['patient', 'doctor', 'nurse', 'lab_technician', 'pharmacist', 'admin', 'super_admin'] satisfies Role[],
 };
 
 export function canAccess(role: LegacyRole | undefined, roles: readonly Role[]): boolean {
