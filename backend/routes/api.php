@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\MedicalRecordController;
@@ -67,6 +68,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
 
     Route::get('/urgent-care-requests', [UrgentCareRequestController::class, 'index'])
         ->middleware('role:patient,doctor,nurse,admin,super_admin');
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
+
     Route::post('/urgent-care-requests', [UrgentCareRequestController::class, 'store'])
         ->middleware('role:patient');
     Route::patch('/urgent-care-requests/{urgentCareRequest}', [UrgentCareRequestController::class, 'update'])

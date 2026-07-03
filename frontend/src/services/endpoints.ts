@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Analytics, Appointment, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
+import type { Analytics, Appointment, AuditLog, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
 
 export const endpoints = {
   login: (payload: { email: string; password: string }) => api.post<{ user: User; token: string }>('/auth/login', payload),
@@ -70,4 +70,5 @@ export const endpoints = {
   registerStaff: (payload: unknown) => api.post<User>('/enterprise/staff', payload),
   inviteStaff: (payload: unknown) => api.post<User>('/enterprise/staff/invitations', payload),
   emergencyRequest: (payload: unknown) => api.post<UrgentCareRequest>('/urgent-care-requests', payload),
+  auditLogs: (params?: Record<string, string>) => api.get<Paginated<AuditLog>>('/audit-logs', { params }),
 };

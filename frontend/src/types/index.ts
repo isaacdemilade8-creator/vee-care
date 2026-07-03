@@ -278,3 +278,15 @@ export interface PractitionerReview {
   appointmentId?: number | null;
   createdAt: string;
 }
+
+export interface AuditLog {
+  id: number;
+  action: string;
+  metadata?: Record<string, unknown> | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  auditableType?: string | null;
+  auditableId?: number | null;
+  user?: User | null;
+  createdAt: string;
+}

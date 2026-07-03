@@ -103,6 +103,13 @@ export function useNotifications() {
   });
 }
 
+export function useAuditLogs(filters?: Record<string, string>) {
+  return useQuery({
+    queryKey: ['audit-logs', filters],
+    queryFn: async () => (await endpoints.auditLogs(filters)).data,
+  });
+}
+
 export function useUrgentCareRequests(filters?: Record<string, string>) {
   return useQuery({
     queryKey: ['urgent-care-requests', filters],

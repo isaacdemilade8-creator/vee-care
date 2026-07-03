@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PrescriptionResource;
 use App\Models\Appointment;
 use App\Models\Prescription;
+use App\Services\AuditService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -26,7 +27,7 @@ class PrescriptionController extends Controller
         return PrescriptionResource::collection($query->paginate($request->integer('per_page', 10)));
     }
 
-    public function store(Request $request, NotificationService $notifications): PrescriptionResource
+    public function store(Request $request, AuditService $audit, NotificationService $notifications): PrescriptionResource
     {
         $data = $request->validate([
             'appointment_id' => ['required', 'exists:appointments,id'],
@@ -53,6 +54,7 @@ class PrescriptionController extends Controller
         $appointment->update(['status' => 'completed']);
         $prescription->load(['patient', 'doctor']);
 
+        $audit->record($request, 'prescription.created', $prescription);
         $notifications->send(
             $prescription->patient,
             'prescription.created',

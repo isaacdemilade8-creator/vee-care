@@ -64,11 +64,7 @@ class UrgentCareRequestController extends Controller
         $triage->load(['patient', 'assignee']);
         $this->notifyCareTeam($triage, $notifications);
 
-        $audit->record($request, 'urgent_care.requested', $triage, [
-            'severity' => $triage->severity,
-            'preferred_channel' => $triage->preferred_channel,
-            'assigned_to' => $triage->assigned_to,
-        ]);
+        $audit->record($request, 'urgent_care.created', $triage);
 
         return new UrgentCareRequestResource($triage);
     }
@@ -106,7 +102,7 @@ class UrgentCareRequestController extends Controller
             ['urgentCareRequestId' => $urgentCareRequest->id, 'status' => $urgentCareRequest->status]
         );
 
-        $audit->record($request, 'urgent_care.updated', $urgentCareRequest, $data);
+        $audit->record($request, 'urgent_care.updated', $urgentCareRequest, ['status' => $urgentCareRequest->status]);
 
         return new UrgentCareRequestResource($urgentCareRequest);
     }

@@ -10,6 +10,7 @@ use App\Models\MedicalRecord;
 use App\Models\Message;
 use App\Models\Prescription;
 use App\Models\User;
+use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -72,7 +73,7 @@ class AdminController extends Controller
         return UserResource::collection($query->paginate($request->integer('per_page', 10)));
     }
 
-    public function storeUser(Request $request): UserResource
+    public function storeUser(Request $request, AuditService $audit): UserResource
     {
         $allowedRoles = $request->user()->isRole('super_admin')
             ? self::ROLES
@@ -92,10 +93,12 @@ class AdminController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
+        $audit->record($request, 'admin.user_created', $user);
+
         return new UserResource($user);
     }
 
-    public function updateUser(Request $request, User $user): UserResource
+    public function updateUser(Request $request, User $user, AuditService $audit): UserResource
     {
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
@@ -110,16 +113,20 @@ class AdminController extends Controller
 
         $user->update($data);
 
+        $audit->record($request, 'admin.user_updated', $user);
+
         return new UserResource($user);
     }
 
-    public function destroyUser(Request $request, User $user): JsonResponse
+    public function destroyUser(Request $request, User $user, AuditService $audit): JsonResponse
     {
         abort_if($request->user()->id === $user->id, 422, 'You cannot delete your own account.');
 
         if (! $request->user()->isRole('super_admin')) {
             abort_if($user->isRole('super_admin', 'admin'), 403, 'Admins cannot delete admin accounts.');
         }
+
+        $audit->record($request, 'admin.user_deleted', $user, ['name' => $user->name]);
 
         $user->delete();
 

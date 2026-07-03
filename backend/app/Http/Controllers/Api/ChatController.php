@@ -8,6 +8,7 @@ use App\Http\Resources\MessageResource;
 use App\Http\Resources\UserResource;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\AuditService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -50,7 +51,7 @@ class ChatController extends Controller
         return MessageResource::collection($messages);
     }
 
-    public function send(Request $request, NotificationService $notifications): MessageResource
+    public function send(Request $request, AuditService $audit, NotificationService $notifications): MessageResource
     {
         $data = $request->validate([
             'receiver_id' => ['required', 'exists:users,id'],
@@ -76,6 +77,7 @@ class ChatController extends Controller
 
         $message->load(['sender', 'receiver']);
 
+        $audit->record($request, 'message.sent', $message, ['receiver_id' => $receiver->id]);
         broadcast(new MessageSent($message))->toOthers();
 
         return new MessageResource($message);

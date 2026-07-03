@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\AuditLog;
 use App\Models\PatientProfile;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +30,13 @@ class AuthController extends Controller
         $user = User::create($data);
         $this->ensurePatientProfile($user);
 
+        AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'auth.register',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return response()->json([
             'user' => new UserResource($user),
             'token' => $user->createToken('healthtech-web')->plainTextToken,
@@ -50,6 +58,14 @@ class AuthController extends Controller
             ]);
         }
 
+        AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'auth.login',
+            'metadata' => ['email' => $credentials['email']],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return response()->json([
             'user' => new UserResource($user),
             'token' => $user->createToken('healthtech-web')->plainTextToken,
@@ -63,7 +79,16 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()?->delete();
+        $user = $request->user();
+
+        AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'auth.logout',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        $user->currentAccessToken()?->delete();
 
         return response()->json(['message' => 'Logged out successfully.']);
     }

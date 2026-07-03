@@ -99,10 +99,7 @@ class PharmacyRequestController extends Controller
 
         $pharmacyRequest->load(['patient', 'doctor', 'items.medicine', 'items.dispensedBy', 'items.givenBy']);
 
-        $audit->record($request, 'pharmacy_request.created', $pharmacyRequest, [
-            'patient' => $patient->name,
-            'items' => $pharmacyRequest->items->count(),
-        ]);
+        $audit->record($request, 'pharmacy_request.created', $request->user());
 
         User::query()
             ->whereIn('role', ['admin', 'pharmacist', 'super_admin'])
@@ -190,10 +187,7 @@ class PharmacyRequestController extends Controller
         $availableCount = $pharmacyRequest->items->where('availability_status', 'available')->count();
         $unavailableCount = $pharmacyRequest->items->where('availability_status', 'unavailable')->count();
 
-        $audit->record($request, 'pharmacy_request.reviewed', $pharmacyRequest, [
-            'available' => $availableCount,
-            'unavailable' => $unavailableCount,
-        ]);
+        $audit->record($request, 'pharmacy_request.completed');
 
         $summary = "{$availableCount} available, {$unavailableCount} unavailable.";
 

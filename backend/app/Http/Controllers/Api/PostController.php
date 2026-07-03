@@ -7,6 +7,7 @@ use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\PostComment;
 use App\Models\User;
+use App\Services\AuditService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class PostController extends Controller
         return new PostResource($this->freshPost($post));
     }
 
-    public function store(Request $request): PostResource
+    public function store(Request $request, AuditService $audit): PostResource
     {
         $data = $request->validate([
             'title' => ['nullable', 'string', 'max:120'],
@@ -51,10 +52,12 @@ class PostController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
+        $audit->record($request, 'post.created', $post);
+
         return new PostResource($this->freshPost($post));
     }
 
-    public function update(Request $request, Post $post): PostResource
+    public function update(Request $request, Post $post, AuditService $audit): PostResource
     {
         $data = $request->validate([
             'title' => ['nullable', 'string', 'max:120'],
@@ -64,17 +67,21 @@ class PostController extends Controller
 
         $post->update($data);
 
+        $audit->record($request, 'post.updated', $post);
+
         return new PostResource($this->freshPost($post));
     }
 
-    public function destroy(Request $request, Post $post): JsonResponse
+    public function destroy(Request $request, Post $post, AuditService $audit): JsonResponse
     {
+        $audit->record($request, 'post.deleted', $post, ['title' => $post->title]);
+
         $post->delete();
 
         return response()->json(['message' => 'Post deleted.']);
     }
 
-    public function comment(Request $request, Post $post, NotificationService $notifications): PostResource
+    public function comment(Request $request, Post $post, AuditService $audit, NotificationService $notifications): PostResource
     {
         $data = $request->validate([
             'body' => ['required', 'string', 'max:1200'],
@@ -84,6 +91,8 @@ class PostController extends Controller
             'user_id' => $request->user()->id,
             'body' => $data['body'],
         ]);
+
+        $audit->record($request, 'post.comment', $comment, ['post_id' => $post->id]);
 
         $this->notifyPostOwner(
             $post,
