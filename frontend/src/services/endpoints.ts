@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Analytics, Appointment, AuditLog, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
+import type { Analytics, Appointment, AuditLog, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
 
 export const endpoints = {
   login: (payload: { email: string; password: string }) => api.post<{ user: User; token: string }>('/auth/login', payload),
@@ -71,4 +71,8 @@ export const endpoints = {
   inviteStaff: (payload: unknown) => api.post<User>('/enterprise/staff/invitations', payload),
   emergencyRequest: (payload: unknown) => api.post<UrgentCareRequest>('/urgent-care-requests', payload),
   auditLogs: (params?: Record<string, string>) => api.get<Paginated<AuditLog>>('/audit-logs', { params }),
+  myCard: () => api.get<{ card: PatientCard | null; message: string }>('/patient-cards/my-card'),
+  patientCards: (params?: Record<string, string>) => api.get<Paginated<PatientCard>>('/patient-cards', { params }),
+  createPatientCard: (payload: { patient_id: number }) => api.post<PatientCard>('/patient-cards', payload),
+  updatePatientCard: (id: number, payload: { status?: string; expires_at?: string }) => api.patch<PatientCard>(`/patient-cards/${id}`, payload),
 };

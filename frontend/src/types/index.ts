@@ -279,6 +279,18 @@ export interface PractitionerReview {
   createdAt: string;
 }
 
+export interface PatientCard {
+  id: number;
+  cardNumber: string;
+  status: 'active' | 'inactive' | 'expired' | 'lost';
+  issuedAt: string;
+  expiresAt?: string | null;
+  metadata?: Record<string, unknown> | null;
+  patient?: { id: number; name: string; role: Role; avatarUrl?: string | null };
+  issuer?: { id: number; name: string; role: string } | null;
+  createdAt: string;
+}
+
 export interface AuditLog {
   id: number;
   action: string;

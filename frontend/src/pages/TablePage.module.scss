@@ -631,3 +631,69 @@
   flex-wrap: wrap;
   gap: 0.35rem;
 }
+
+.cardPaymentOption {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.paymentRadio {
+  align-items: center;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line-soft);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  transition: border-color 180ms ease, background 180ms ease;
+  position: relative;
+
+  &:has(input:checked) {
+    border-color: var(--app-accent);
+    background: color-mix(in srgb, var(--app-accent) 5%, transparent);
+  }
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  strong {
+    color: var(--app-heading);
+    display: block;
+    font-size: 0.9rem;
+  }
+
+  p {
+    color: var(--app-muted);
+    font-size: 0.8rem;
+    margin: 0.1rem 0 0;
+  }
+}
+
+.paymentRadioMark {
+  align-items: center;
+  border: 2px solid var(--app-line);
+  border-radius: 50%;
+  display: flex;
+  flex-shrink: 0;
+  height: 1.2rem;
+  justify-content: center;
+  width: 1.2rem;
+  transition: border-color 180ms ease;
+
+  input:checked + & {
+    border-color: var(--app-accent);
+
+    &::after {
+      content: '';
+      background: var(--app-accent);
+      border-radius: 50%;
+      height: 0.55rem;
+      width: 0.55rem;
+    }
+  }
+}

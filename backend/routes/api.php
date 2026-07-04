@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\MedicineOrderController;
+use App\Http\Controllers\Api\PatientCardController;
 use App\Http\Controllers\Api\PharmacyRequestController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\PractitionerReviewController;
@@ -66,9 +67,19 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
+
+    Route::get('/patient-cards/my-card', [PatientCardController::class, 'myCard']);
+    Route::get('/patient-cards', [PatientCardController::class, 'index'])
+        ->middleware('role:patient,nurse,admin,super_admin');
+    Route::post('/patient-cards', [PatientCardController::class, 'store'])
+        ->middleware('role:nurse,admin,super_admin');
+    Route::get('/patient-cards/{patientCard}', [PatientCardController::class, 'show']);
+    Route::patch('/patient-cards/{patientCard}', [PatientCardController::class, 'update'])
+        ->middleware('role:nurse,admin,super_admin');
+
     Route::get('/urgent-care-requests', [UrgentCareRequestController::class, 'index'])
         ->middleware('role:patient,doctor,nurse,admin,super_admin');
-    Route::get('/audit-logs', [AuditLogController::class, 'index']);
 
     Route::post('/urgent-care-requests', [UrgentCareRequestController::class, 'store'])
         ->middleware('role:patient');

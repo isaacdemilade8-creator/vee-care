@@ -1,4 +1,4 @@
-import { Activity, Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Pill, Settings, ShieldCheck, Stethoscope, UserRound, Users } from 'lucide-react';
+import { Activity, Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, CreditCard, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Pill, Settings, ShieldCheck, Stethoscope, UserRound, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
@@ -53,7 +53,7 @@ export function DashboardLayout() {
   const enterpriseLinks = enterpriseModuleLinks.filter((link) => canAccess(user?.role, link.roles));
   const enterpriseHome = canAccess(user?.role, routeRoles.enterpriseOverview) ? '/enterprise' : enterpriseLinks[0]?.to ?? '/dashboard';
   const primaryMobileLinks = links.slice(0, 4);
-  const moreLinks = [...links.slice(4), { to: '/activity-log', label: 'Activity Log', icon: Activity }, { to: '/settings', label: 'Settings', icon: Settings }];
+  const moreLinks = [...links.slice(4), { to: '/my-card', label: 'My Card', icon: CreditCard }, { to: '/activity-log', label: 'Activity Log', icon: Activity }, { to: '/settings', label: 'Settings', icon: Settings }];
 
   useEffect(() => {
     if (isEnterpriseRoute) {

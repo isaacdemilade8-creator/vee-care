@@ -20,6 +20,7 @@ import { NurseStationPage } from './pages/NurseStationPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ProfilesPage } from './pages/ProfilesPage';
 import { ActivityLogPage } from './pages/ActivityLogPage';
+import { PatientCardPage } from './pages/PatientCardPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VideoConsultationPage } from './pages/VideoConsultationPage';
 import { routeRoles } from './auth/roleAccess';
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/profiles" element={<ProfilesPage />} />
             <Route path="/profiles/:id" element={<ProfilePage />} />
           </Route>
+          <Route path="/my-card" element={<PatientCardPage />} />
           <Route path="/activity-log" element={<ActivityLogPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/consultations/:appointmentId" element={<VideoConsultationPage />} />

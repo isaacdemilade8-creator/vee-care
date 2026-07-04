@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -10,6 +10,7 @@ import { Card } from '../components/Card';
 import { SelectField, TextAreaField, TextField } from '../components/FormField';
 import { Modal } from '../components/Modal';
 import { SkeletonRows } from '../components/Skeleton';
+import { VirtualCard } from '../components/VirtualCard';
 import { useAuth } from '../context/AuthContext';
 import { useApiMutation, useAppointments, useDoctors } from '../hooks/useApi';
 import { endpoints } from '../services/endpoints';
@@ -23,17 +24,26 @@ const appointmentSchema = z.object({
   notes: z.string().optional(),
 });
 
+const paymentSchema = z.object({
+  cardNumber: z.string().regex(/^\d{16}$/, 'Enter a valid 16-digit card number'),
+  cardName: z.string().min(3, 'Enter the cardholder name'),
+  expiry: z.string().regex(/^\d{2}\/\d{2}$/, 'Use MM/YY format'),
+  cvv: z.string().regex(/^\d{3,4}$/, 'Enter a valid CVV'),
+});
+
 export function AppointmentsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [bookingStep, setBookingStep] = useState<'details' | 'payment'>('details');
   const [doctorSearch, setDoctorSearch] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [minRating, setMinRating] = useState('');
   const [reviewAppointment, setReviewAppointment] = useState<Appointment | null>(null);
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const [payByCard, setPayByCard] = useState(true);
   const appointments = useAppointments(status ? { status } : undefined);
   const allDoctors = useDoctors();
   const doctors = useDoctors({
@@ -41,6 +51,12 @@ export function AppointmentsPage() {
     ...(specialty ? { specialty } : {}),
     ...(minRating ? { min_rating: minRating } : {}),
   });
+  const { data: myCard } = useQuery({
+    queryKey: ['my-card'],
+    queryFn: async () => (await endpoints.myCard()).data,
+    enabled: user?.role === 'patient',
+  });
+  const hasActiveCard = Boolean(myCard?.card?.status === 'active');
   const createAppointment = useApiMutation((payload: unknown) => endpoints.createAppointment(payload), ['appointments'], 'Appointment requested');
   const updateAppointment = useApiMutation(({ id, payload }: { id: number; payload: unknown }) => endpoints.updateAppointment(id, payload), ['appointments'], 'Appointment updated');
   const createReview = useMutation({
@@ -60,6 +76,13 @@ export function AppointmentsPage() {
   const { register, handleSubmit, control, formState: { errors } } = useForm<z.input<typeof appointmentSchema>, unknown, z.output<typeof appointmentSchema>>({
     resolver: zodResolver(appointmentSchema),
   });
+  const {
+    register: registerPayment,
+    handleSubmit: handlePaymentSubmit,
+    formState: { errors: paymentErrors },
+  } = useForm<z.input<typeof paymentSchema>, unknown, z.output<typeof paymentSchema>>({
+    resolver: zodResolver(paymentSchema),
+  });
   const selectedDoctorId = Number(useWatch({ control, name: 'doctor_id' }));
   const specialtyOptions = useMemo(() => {
     const values = new Set<string>();
@@ -72,6 +95,27 @@ export function AppointmentsPage() {
   }, [allDoctors.data?.data]);
 
   const selectedDoctor = doctors.data?.data.find((doctor) => doctor.id === selectedDoctorId);
+
+  const goToPayment = () => setBookingStep('payment');
+
+  const completeBooking = (paymentData?: unknown) => {
+    if (hasActiveCard) {
+      createAppointment.mutate(undefined as unknown as Record<string, unknown>, {
+        onSuccess: () => {
+          setShowModal(false);
+          setBookingStep('details');
+        },
+      });
+    } else {
+      toast.success('Payment processed (demo)');
+      createAppointment.mutate(undefined as unknown as Record<string, unknown>, {
+        onSuccess: () => {
+          setShowModal(false);
+          setBookingStep('details');
+        },
+      });
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -124,43 +168,104 @@ export function AppointmentsPage() {
         )}
       </Card>
       {showModal ? (
-        <Modal title="Book appointment" onClose={() => setShowModal(false)}>
-          <form className={`${styles.form} ${styles.bookingForm}`} onSubmit={handleSubmit((values) => createAppointment.mutate(values, { onSuccess: () => setShowModal(false) }))}>
-            <div className={styles.sectionTitle}>
-              <h3>Find the right practitioner</h3>
-              <p>Filter by specialty, name, or patient rating before choosing a time.</p>
+        <Modal title={bookingStep === 'details' ? 'Book appointment' : 'Payment'} onClose={() => { setShowModal(false); setBookingStep('details'); }}>
+          {bookingStep === 'details' ? (
+            <form className={`${styles.form} ${styles.bookingForm}`} onSubmit={handleSubmit(() => goToPayment())}>
+              <div className={styles.sectionTitle}>
+                <h3>Find the right practitioner</h3>
+                <p>Filter by specialty, name, or patient rating before choosing a time.</p>
+              </div>
+              <div className={styles.formRow}>
+                <TextField label="Search doctor" value={doctorSearch} onChange={(event) => setDoctorSearch(event.target.value)} placeholder="Name or specialty" />
+                <SelectField label="Specialty" value={specialty} onChange={(event) => setSpecialty(event.target.value)}>
+                  <option value="">All specialties</option>
+                  {specialtyOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+                </SelectField>
+                <SelectField label="Minimum rating" value={minRating} onChange={(event) => setMinRating(event.target.value)}>
+                  <option value="">Any rating</option>
+                  <option value="4">4+ stars</option>
+                  <option value="3">3+ stars</option>
+                </SelectField>
+              </div>
+              <div className={styles.doctorChooser}>
+                <SelectField label="Doctor" error={errors.doctor_id?.message} {...register('doctor_id')}>
+                  <option value="">Choose doctor</option>
+                  {doctors.data?.data.map((doctor) => (
+                    <option key={doctor.id} value={doctor.id}>
+                      {doctor.name} - {doctor.specialty || 'General Medicine'} - {doctor.averageRating ? `${doctor.averageRating}/5` : 'New'}
+                    </option>
+                  ))}
+                </SelectField>
+                <p>{doctors.isLoading ? 'Loading practitioners...' : `${doctors.data?.data.length ?? 0} practitioners match your filters.`}</p>
+              </div>
+              {selectedDoctor ? <p className={styles.ratingLine}>Selected rating: {selectedDoctor.averageRating ?? 'New'} / 5 from {selectedDoctor.reviewsCount ?? 0} reviews</p> : null}
+              <div className={styles.formRow}>
+                <TextField label="Date and time" type="datetime-local" error={errors.scheduled_at?.message} {...register('scheduled_at')} />
+                <TextField label="Reason" error={errors.reason?.message} {...register('reason')} />
+              </div>
+              <TextAreaField label="Notes" {...register('notes')} />
+              <Button>Continue to payment</Button>
+            </form>
+          ) : (
+            <div className={styles.form}>
+              <div className={styles.sectionTitle}>
+                <h3>Payment method</h3>
+                <p>Select how you would like to pay for this appointment.</p>
+              </div>
+
+              {hasActiveCard ? (
+                <div className={styles.cardPaymentOption}>
+                  <label className={styles.paymentRadio}>
+                    <input type="radio" name="pay_method" checked={payByCard} onChange={() => setPayByCard(true)} />
+                    <span className={styles.paymentRadioMark} />
+                    <div>
+                      <strong>Membership card</strong>
+                      <p>Pay with your Vee-care card &middot; {myCard?.card?.cardNumber}</p>
+                    </div>
+                  </label>
+                  <label className={styles.paymentRadio}>
+                    <input type="radio" name="pay_method" checked={!payByCard} onChange={() => setPayByCard(false)} />
+                    <span className={styles.paymentRadioMark} />
+                    <div>
+                      <strong>Credit / debit card</strong>
+                      <p>Pay with a Mastercard, Visa, or other card</p>
+                    </div>
+                  </label>
+
+                  {payByCard && myCard?.card ? (
+                    <div style={{ display: 'grid', gap: '1rem', justifyItems: 'center', padding: '0.5rem 0' }}>
+                      <VirtualCard card={myCard.card} />
+                      <p style={{ color: 'var(--app-muted)', fontSize: '0.85rem', margin: 0, textAlign: 'center' }}>
+                        Your membership card will be charged for this appointment.
+                      </p>
+                      <Button onClick={() => completeBooking()}>
+                        Confirm with card
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {!hasActiveCard || !payByCard ? (
+                <form onSubmit={handlePaymentSubmit((data) => completeBooking(data))}>
+                  <div className={styles.formRow}>
+                    <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
+                  </div>
+                  <div className={styles.formRow}>
+                    <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
+                  </div>
+                  <div className={styles.formRow}>
+                    <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
+                    <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
+                  </div>
+                  <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
+                    This is a demo &mdash; no real payment will be processed.
+                  </p>
+                  <Button>Pay & book appointment</Button>
+                </form>
+              ) : null}
             </div>
-            <div className={styles.formRow}>
-              <TextField label="Search doctor" value={doctorSearch} onChange={(event) => setDoctorSearch(event.target.value)} placeholder="Name or specialty" />
-              <SelectField label="Specialty" value={specialty} onChange={(event) => setSpecialty(event.target.value)}>
-                <option value="">All specialties</option>
-                {specialtyOptions.map((item) => <option key={item} value={item}>{item}</option>)}
-              </SelectField>
-              <SelectField label="Minimum rating" value={minRating} onChange={(event) => setMinRating(event.target.value)}>
-                <option value="">Any rating</option>
-                <option value="4">4+ stars</option>
-                <option value="3">3+ stars</option>
-              </SelectField>
-            </div>
-            <div className={styles.doctorChooser}>
-              <SelectField label="Doctor" error={errors.doctor_id?.message} {...register('doctor_id')}>
-                <option value="">Choose doctor</option>
-                {doctors.data?.data.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>
-                    {doctor.name} - {doctor.specialty || 'General Medicine'} - {doctor.averageRating ? `${doctor.averageRating}/5` : 'New'}
-                  </option>
-                ))}
-              </SelectField>
-              <p>{doctors.isLoading ? 'Loading practitioners...' : `${doctors.data?.data.length ?? 0} practitioners match your filters.`}</p>
-            </div>
-            {selectedDoctor ? <p className={styles.ratingLine}>Selected rating: {selectedDoctor.averageRating ?? 'New'} / 5 from {selectedDoctor.reviewsCount ?? 0} reviews</p> : null}
-            <div className={styles.formRow}>
-              <TextField label="Date and time" type="datetime-local" error={errors.scheduled_at?.message} {...register('scheduled_at')} />
-              <TextField label="Reason" error={errors.reason?.message} {...register('reason')} />
-            </div>
-            <TextAreaField label="Notes" {...register('notes')} />
-            <Button disabled={createAppointment.isPending}>Submit request</Button>
-          </form>
+          )}
         </Modal>
       ) : null}
       {reviewAppointment?.doctor ? (
