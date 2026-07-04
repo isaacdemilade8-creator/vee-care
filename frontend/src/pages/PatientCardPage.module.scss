@@ -1,0 +1,164 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  align-content: start;
+}
+
+.header {
+  align-items: stretch;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--app-accent) 14%, transparent) 0%, transparent 50%),
+    linear-gradient(225deg, color-mix(in srgb, var(--app-warm) 6%, transparent) 0%, transparent 40%),
+    var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  box-shadow: var(--app-shadow);
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 1.25rem;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--app-accent), color-mix(in srgb, var(--app-warm) 50%, var(--app-accent)));
+    opacity: 0.5;
+  }
+
+  > div {
+    align-content: center;
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  span {
+    color: var(--app-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    color: var(--app-heading);
+    font-size: clamp(1.55rem, 5vw, 2.35rem);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 0;
+  }
+
+  p {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.cardSection {
+  display: grid;
+  justify-items: center;
+  padding: 1.5rem 0;
+}
+
+.loading {
+  color: var(--app-muted);
+  padding: 2rem;
+}
+
+.noCard {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  max-width: 28rem;
+  padding: 2rem 1rem;
+  text-align: center;
+
+  h3, p {
+    margin: 0;
+  }
+
+  h3 {
+    color: var(--app-heading);
+    font-size: 1.25rem;
+  }
+
+  p {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+}
+
+.noCardIcon {
+  align-items: center;
+  background: var(--app-accent-soft);
+  border-radius: 16px;
+  color: var(--app-accent);
+  display: flex;
+  height: 4.5rem;
+  justify-content: center;
+  width: 4.5rem;
+}
+
+.benefits {
+  display: grid;
+  gap: 1rem;
+
+  h3 {
+    color: var(--app-heading);
+    font-size: 1.15rem;
+    margin: 0.5rem 0 0;
+  }
+}
+
+.benefitGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+.benefit {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line-soft);
+  border-radius: 10px;
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem;
+  position: relative;
+  padding-left: 2rem;
+
+  strong {
+    color: var(--app-heading);
+    font-size: 0.9rem;
+  }
+
+  p {
+    color: var(--app-muted);
+    font-size: 0.82rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.benefitDot {
+  border-radius: 50%;
+  height: 0.5rem;
+  left: 0.85rem;
+  position: absolute;
+  top: 1.15rem;
+  width: 0.5rem;
+}
+
+@media (min-width: 620px) {
+  .benefitGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

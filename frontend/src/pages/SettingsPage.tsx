@@ -1,8 +1,10 @@
 import type { FormEvent } from 'react';
+import { useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Activity, Edit3, LogOut, Moon, UserRound } from 'lucide-react';
+import { Activity, CreditCard, Edit3, LogOut, Moon, UserRound, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -125,6 +127,17 @@ export function SettingsPage() {
           </div>
           <Link to="/activity-log"><Button variant="secondary">View activity log</Button></Link>
         </Card>
+
+        <Card>
+          <div className={styles.sectionTitle}>
+            <CreditCard />
+            <div>
+              <h3>My Card</h3>
+              <p>Access your virtual membership card.</p>
+            </div>
+          </div>
+          <Link to="/my-card"><Button variant="secondary">View my card</Button></Link>
+        </Card>
       </div>
 
       <Card>
@@ -159,11 +172,26 @@ export function SettingsPage() {
       </Card>
 
       {editingField ? (
-        <div className={styles.modal} role="presentation" onMouseDown={() => setEditingField(null)}>
-          <Card className={styles.editModal} onMouseDown={(event) => event.stopPropagation()}>
+        <motion.div
+          className={styles.modal}
+          role="presentation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.18 }}
+          onMouseDown={() => setEditingField(null)}
+        >
+          <motion.div
+            className={styles.editModal}
+            initial={{ opacity: 0, scale: 0.93, y: 24 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <h3>Edit {fieldLabels[editingField]}</h3>
-              <button type="button" onClick={() => setEditingField(null)}>Close</button>
+              <button type="button" className={styles.modalClose} onClick={() => setEditingField(null)} aria-label="Close">
+                <X size={18} />
+              </button>
             </div>
             <form className={styles.fieldForm} onSubmit={submitField}>
               {editingField === 'bio' ? (
@@ -181,8 +209,8 @@ export function SettingsPage() {
               )}
               <Button disabled={updateProfile.isPending}>Save change</Button>
             </form>
-          </Card>
-        </div>
+          </motion.div>
+        </motion.div>
       ) : null}
     </div>
   );

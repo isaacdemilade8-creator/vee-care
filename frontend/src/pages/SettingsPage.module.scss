@@ -190,18 +190,52 @@
 
 .modal {
   align-items: center;
-  background: rgba(15, 47, 61, 0.45);
-  display: grid;
+  backdrop-filter: blur(16px) saturate(1.2);
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--app-accent) 8%, transparent) 0%, transparent 60%),
+    color-mix(in srgb, var(--app-text) 22%, transparent);
+  display: flex;
   inset: 0;
+  justify-content: center;
   padding: 1rem;
   position: fixed;
   z-index: 50;
 }
 
 .editModal {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 20px;
+  box-shadow:
+    0 32px 80px color-mix(in srgb, var(--app-text) 14%, transparent),
+    0 8px 24px color-mix(in srgb, var(--app-text) 6%, transparent);
   margin: auto;
   max-width: 34rem;
+  overflow: hidden;
+  position: relative;
   width: min(100%, 34rem);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-warm) 50%, var(--app-accent)), var(--app-accent));
+    z-index: 1;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: color-mix(in srgb, var(--app-accent) 15%, transparent);
+    z-index: 1;
+  }
 }
 
 .modalHeader {
@@ -209,20 +243,70 @@
   display: flex;
   gap: 1rem;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  padding: 1.25rem 1.5rem 0;
 
   h3 {
     color: var(--app-heading);
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
     margin: 0;
+    position: relative;
+    padding-left: 0.75rem;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.1rem;
+      bottom: 0.1rem;
+      width: 3px;
+      background: linear-gradient(180deg, var(--app-accent), color-mix(in srgb, var(--app-warm) 50%, var(--app-accent)));
+      border-radius: 3px;
+      opacity: 0.6;
+    }
+  }
+}
+
+.modalClose {
+  align-items: center;
+  background: var(--app-surface-strong);
+  border: 1px solid var(--app-line-soft);
+  border-radius: 10px;
+  color: var(--app-text);
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 2.25rem;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  width: 2.25rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--app-accent), color-mix(in srgb, var(--app-warm) 50%, var(--app-accent)));
+    opacity: 0;
+    transition: opacity 180ms ease;
+    z-index: -1;
   }
 
-  button {
-    background: var(--app-surface-strong);
-    border: 1px solid var(--app-line);
-    border-radius: 999px;
+  &:hover {
+    background: var(--app-surface);
+    border-color: transparent;
     color: var(--app-accent);
-    min-height: 2.1rem;
-    padding: 0.35rem 0.7rem;
+    transform: rotate(90deg) scale(1.05);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: rotate(90deg) scale(0.95);
   }
 }
 
