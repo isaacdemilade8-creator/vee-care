@@ -44,6 +44,7 @@ export function AppointmentsPage() {
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [payByCard, setPayByCard] = useState(true);
+  const [appointmentData, setAppointmentData] = useState<z.output<typeof appointmentSchema> | null>(null);
   const appointments = useAppointments(status ? { status } : undefined);
   const allDoctors = useDoctors();
   const doctors = useDoctors({
@@ -98,22 +99,40 @@ export function AppointmentsPage() {
 
   const goToPayment = () => setBookingStep('payment');
 
-  const completeBooking = (paymentData?: unknown) => {
+  const completeBooking = () => {
+    if (!appointmentData) return;
+
     if (hasActiveCard) {
-      createAppointment.mutate(undefined as unknown as Record<string, unknown>, {
+      createAppointment.mutate(appointmentData, {
+        onSuccess: () => {
+          setShowModal(false);
+          setBookingStep('details');
+          setAppointmentData(null);
+        },
+      });
+    } else {
+      toast.success('Payment processed (demo)');
+      createAppointment.mutate(appointmentData, {
+        onSuccess: () => {
+          setShowModal(false);
+          setBookingStep('details');
+          setAppointmentData(null);
+        },
+      });
+    }
+  };
+
+  const bookOrProceed = (data: z.output<typeof appointmentSchema>) => {
+    if (hasActiveCard) {
+      createAppointment.mutate(data, {
         onSuccess: () => {
           setShowModal(false);
           setBookingStep('details');
         },
       });
     } else {
-      toast.success('Payment processed (demo)');
-      createAppointment.mutate(undefined as unknown as Record<string, unknown>, {
-        onSuccess: () => {
-          setShowModal(false);
-          setBookingStep('details');
-        },
-      });
+      setAppointmentData(data);
+      goToPayment();
     }
   };
 
@@ -170,7 +189,7 @@ export function AppointmentsPage() {
       {showModal ? (
         <Modal title={bookingStep === 'details' ? 'Book appointment' : 'Payment'} onClose={() => { setShowModal(false); setBookingStep('details'); }}>
           {bookingStep === 'details' ? (
-            <form className={`${styles.form} ${styles.bookingForm}`} onSubmit={handleSubmit(() => goToPayment())}>
+            <form className={`${styles.form} ${styles.bookingForm}`} onSubmit={handleSubmit(bookOrProceed)}>
               <div className={styles.sectionTitle}>
                 <h3>Find the right practitioner</h3>
                 <p>Filter by specialty, name, or patient rating before choosing a time.</p>
@@ -204,7 +223,7 @@ export function AppointmentsPage() {
                 <TextField label="Reason" error={errors.reason?.message} {...register('reason')} />
               </div>
               <TextAreaField label="Notes" {...register('notes')} />
-              <Button>Continue to payment</Button>
+              <Button>{hasActiveCard ? 'Book appointment' : 'Request for a medical card'}</Button>
             </form>
           ) : (
             <div className={styles.form}>
@@ -247,7 +266,7 @@ export function AppointmentsPage() {
               ) : null}
 
               {!hasActiveCard || !payByCard ? (
-                <form onSubmit={handlePaymentSubmit((data) => completeBooking(data))}>
+                <form onSubmit={handlePaymentSubmit(() => completeBooking())}>
                   <div className={styles.formRow}>
                     <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
                   </div>
