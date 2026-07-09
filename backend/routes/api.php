@@ -70,10 +70,12 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
     Route::get('/audit-logs', [AuditLogController::class, 'index']);
 
     Route::get('/patient-cards/my-card', [PatientCardController::class, 'myCard']);
+    Route::post('/patient-cards/request', [PatientCardController::class, 'requestCard'])
+        ->middleware('role:patient');
     Route::get('/patient-cards', [PatientCardController::class, 'index'])
         ->middleware('role:patient,nurse,admin,super_admin');
     Route::post('/patient-cards', [PatientCardController::class, 'store'])
-        ->middleware('role:nurse,admin,super_admin');
+        ->middleware('role:admin,super_admin');
     Route::get('/patient-cards/{patientCard}', [PatientCardController::class, 'show']);
     Route::patch('/patient-cards/{patientCard}', [PatientCardController::class, 'update'])
         ->middleware('role:nurse,admin,super_admin');

@@ -72,6 +72,7 @@ export const endpoints = {
   emergencyRequest: (payload: unknown) => api.post<UrgentCareRequest>('/urgent-care-requests', payload),
   auditLogs: (params?: Record<string, string>) => api.get<Paginated<AuditLog>>('/audit-logs', { params }),
   myCard: () => api.get<{ card: PatientCard | null; message: string }>('/patient-cards/my-card'),
+  requestPatientCard: (payload: { cardNumber: string; cardName: string; expiry: string; cvv: string }) => api.post<PatientCard>('/patient-cards/request', payload),
   patientCards: (params?: Record<string, string>) => api.get<Paginated<PatientCard>>('/patient-cards', { params }),
   createPatientCard: (payload: { patient_id: number }) => api.post<PatientCard>('/patient-cards', payload),
   updatePatientCard: (id: number, payload: { status?: string; expires_at?: string }) => api.patch<PatientCard>(`/patient-cards/${id}`, payload),

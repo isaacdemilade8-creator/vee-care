@@ -1,4 +1,4 @@
-import { Activity, ClipboardList, CreditCard, FileUp, HeartPulse, MessageCircle, Search } from 'lucide-react';
+import { Activity, ClipboardList, FileUp, HeartPulse, MessageCircle, Search } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
@@ -6,14 +6,13 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card, StatCard } from '../components/Card';
-import { Modal } from '../components/Modal';
 import { SkeletonRows } from '../components/Skeleton';
-import { VirtualCard } from '../components/VirtualCard';
+
 import { useAuth } from '../context/AuthContext';
 import { useMedicalRecords, useUrgentCareRequests } from '../hooks/useApi';
 import { useEnterprisePatients, useEnterpriseVitals } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
-import type { PatientCard, PatientProfile, UrgentCareRequest, Vital } from '../types';
+import type { PatientProfile, UrgentCareRequest, Vital } from '../types';
 import styles from './TablePage.module.scss';
 
 function formValues(form: HTMLFormElement) {
@@ -91,24 +90,10 @@ export function NurseStationPage() {
     });
   };
 
-  const [showCardModal, setShowCardModal] = useState(false);
-  const [issuedCard, setIssuedCard] = useState<PatientCard | null>(null);
-
-  const issueCard = useMutation({
-    mutationFn: (patientId: number) => endpoints.createPatientCard({ patient_id: patientId }),
-    onSuccess: async (response) => {
-      setIssuedCard(response.data as unknown as PatientCard);
-      await queryClient.invalidateQueries({ queryKey: ['patient-cards'] });
-      toast.success('Virtual card issued successfully');
-    },
-  });
-
   const takeTriage = (request: UrgentCareRequest) => updateTriage.mutate({
     id: request.id,
     payload: { status: 'in_progress', assigned_to: user?.id },
   });
-
-  const alreadyHasCard = (patientId: number) => false;
 
   return (
     <div className={styles.page}>
@@ -211,31 +196,6 @@ export function NurseStationPage() {
             </form>
           </Card>
 
-          <Card>
-            <div className={styles.sectionTitle}>
-              <span>Membership</span>
-              <h3>Issue virtual card</h3>
-              <p>Issue a Vee-care membership card to a registered patient. Cardholders get express service access.</p>
-            </div>
-            <div className={styles.form}>
-              <div className={styles.formRow}>
-                <select
-                  value={selectedPatientId ?? ''}
-                  onChange={(event) => setSelectedPatientId(Number(event.target.value) || undefined)}
-                  disabled={issueCard.isPending}
-                >
-                  <option value="">Select patient</option>
-                  {patientOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-                <Button
-                  onClick={() => selectedPatientId && setShowCardModal(true)}
-                  disabled={!selectedPatientId || issueCard.isPending}
-                >
-                  <CreditCard size={17} /> Issue card
-                </Button>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
 
@@ -286,31 +246,6 @@ export function NurseStationPage() {
         </Card>
       </div>
 
-      {showCardModal && selectedPatientId ? (
-        <Modal title="Confirm card issuance" onClose={() => { setShowCardModal(false); setIssuedCard(null); }}>
-          <div className={styles.form}>
-            {issuedCard ? (
-              <div style={{ display: 'grid', gap: '1rem', justifyItems: 'center', padding: '1rem 0' }}>
-                <VirtualCard card={issuedCard} />
-                <Button onClick={() => { setShowCardModal(false); setIssuedCard(null); }}>Done</Button>
-              </div>
-            ) : (
-              <>
-                <p style={{ color: 'var(--app-muted)', lineHeight: 1.6, margin: 0 }}>
-                  Issue a new Vee-care membership card to <strong>{patientOptions.find((o) => o.value === selectedPatientId)?.label}</strong>?
-                  This will generate a unique card number and set it active for 2 years.
-                </p>
-                <div className={styles.formActions}>
-                  <Button variant="ghost" onClick={() => setShowCardModal(false)}>Cancel</Button>
-                  <Button onClick={() => issueCard.mutate(selectedPatientId)} disabled={issueCard.isPending}>
-                    <CreditCard size={17} /> Confirm & issue
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        </Modal>
-      ) : null}
     </div>
   );
 }

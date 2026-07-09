@@ -102,6 +102,49 @@ class PatientCardController extends Controller
         return new PatientCardResource($patientCard);
     }
 
+    public function requestCard(Request $request, AuditService $audit): PatientCardResource
+    {
+        $patient = $request->user();
+
+        abort_unless($patient->isRole('patient'), 403);
+
+        $existing = PatientCard::where('patient_id', $patient->id)
+            ->where('status', 'active')
+            ->first();
+
+        if ($existing) {
+            abort(409, 'You already have an active card.');
+        }
+
+        $request->validate([
+            'cardNumber' => ['required', 'string', 'regex:/^\d{16}$/'],
+            'cardName' => ['required', 'string', 'min:3'],
+            'expiry' => ['required', 'string', 'regex:/^\d{2}\/\d{2}$/'],
+            'cvv' => ['required', 'string', 'regex:/^\d{3,4}$/'],
+        ]);
+
+        $latest = PatientCard::latest('id')->value('id') ?? 0;
+        $cardNumber = 'VHC-'.str_pad((string) ($latest + 1), 6, '0', STR_PAD_LEFT);
+
+        $card = PatientCard::create([
+            'organization_id' => $patient->organization_id,
+            'patient_id' => $patient->id,
+            'card_number' => $cardNumber,
+            'status' => 'active',
+            'issued_by' => $patient->id,
+            'issued_at' => now(),
+            'expires_at' => now()->addYears(2),
+        ]);
+
+        $card->load(['patient', 'issuer']);
+
+        $audit->record($request, 'patient_card.requested', $card, [
+            'card_number' => $cardNumber,
+        ]);
+
+        return new PatientCardResource($card);
+    }
+
     public function myCard(Request $request): JsonResponse
     {
         $card = PatientCard::query()

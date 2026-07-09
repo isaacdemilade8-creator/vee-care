@@ -1,16 +1,18 @@
 import { QRCodeCanvas } from 'qrcode.react';
-import { CalendarDays, ClipboardList, FileText, FlaskConical, HeartPulse, Pill, Stethoscope } from 'lucide-react';
+import { CalendarDays, ClipboardList, CreditCard, FileText, FlaskConical, HeartPulse, Pill, Stethoscope } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { Modal } from '../components/Modal';
+import { VirtualCard } from '../components/VirtualCard';
 import { SkeletonRows } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, useEnterpriseStaff, usePharmacyRequests } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
-import type { Appointment, MedicalRecord, PharmacyRequest, PharmacyRequestItem, Prescription, UrgentCareRequest, User, Vital } from '../types';
+import type { Appointment, MedicalRecord, PatientCard, PharmacyRequest, PharmacyRequestItem, Prescription, UrgentCareRequest, User, Vital } from '../types';
 import styles from './EnterpriseModulesPage.module.scss';
 
 const modules = ['patients', 'ehr', 'staff', 'pharmacy', 'lab', 'ai'] as const;
@@ -21,6 +23,8 @@ export function EnterpriseModulesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedModule = searchParams.get('module') as (typeof modules)[number] | null;
   const [selectedPatientId, setSelectedPatientId] = useState<number | undefined>();
+  const [showCardModal, setShowCardModal] = useState(false);
+  const [issuedCard, setIssuedCard] = useState<PatientCard | null>(null);
   const [active, setActive] = useState<(typeof modules)[number]>(
     requestedModule && modules.includes(requestedModule) ? requestedModule : 'patients',
   );
@@ -85,6 +89,14 @@ export function EnterpriseModulesPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['enterprise-ehr'] });
       toast.success('Lab result updated');
+    },
+  });
+  const issueCard = useMutation({
+    mutationFn: (patientId: number) => endpoints.createPatientCard({ patient_id: patientId }),
+    onSuccess: async (response) => {
+      setIssuedCard(response.data as unknown as PatientCard);
+      await queryClient.invalidateQueries({ queryKey: ['patient-cards'] });
+      toast.success('Virtual card issued successfully');
     },
   });
   const allowedModules = modules.filter((module) => {
@@ -183,18 +195,48 @@ export function EnterpriseModulesPage() {
       </div>
 
       {visibleActive === 'patients' ? (
-        <Card>
-          <h2>Patient management</h2>
-          {patients.isLoading ? <SkeletonRows /> : patients.data?.data.map((patient) => (
-            <article className={styles.row} key={patient.id}>
-              <div>
-                <strong>{patient.user?.name}</strong>
-                <span>{patient.patientNumber} - Allergies: {patient.allergies.join(', ') || 'None'}</span>
+        <>
+          <Card>
+            <h2>Patient management</h2>
+            {patients.isLoading ? <SkeletonRows /> : patients.data?.data.map((patient) => (
+              <article className={styles.row} key={patient.id}>
+                <div>
+                  <strong>{patient.user?.name}</strong>
+                  <span>{patient.patientNumber} - Allergies: {patient.allergies.join(', ') || 'None'}</span>
+                  <span className={styles.badge} style={{ color: patient.card ? 'var(--app-accent)' : 'var(--app-muted)', background: patient.card ? 'var(--app-accent-soft)' : 'var(--app-line-soft)' }}>
+                    {patient.card ? `Card: ${patient.card.status}` : 'No card'}
+                  </span>
+                </div>
+                <QRCodeCanvas value={`vee-care://patient/${patient.patientNumber}`} size={72} />
+              </article>
+            ))}
+          </Card>
+          {['admin', 'super_admin'].includes(user?.role ?? '') ? (
+            <Card>
+              <h2>Issue virtual card</h2>
+              <p>Issue a Vee-care membership card to a registered patient.</p>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'end', flexWrap: 'wrap' }}>
+                <select
+                  value={selectedPatientId ?? ''}
+                  onChange={(event) => setSelectedPatientId(Number(event.target.value) || undefined)}
+                  disabled={issueCard.isPending}
+                  style={{ flex: '1 1 16rem', minHeight: '2.75rem', padding: '0.65rem 0.8rem' }}
+                >
+                  <option value="">Select patient</option>
+                  {(patients.data?.data ?? []).map((patient) => (
+                    <option key={patient.id} value={patient.user?.id}>{patient.user?.name ?? patient.patientNumber}</option>
+                  ))}
+                </select>
+                <Button
+                  onClick={() => selectedPatientId && setShowCardModal(true)}
+                  disabled={!selectedPatientId || issueCard.isPending}
+                >
+                  <CreditCard size={17} /> Issue card
+                </Button>
               </div>
-              <QRCodeCanvas value={`vee-care://patient/${patient.patientNumber}`} size={72} />
-            </article>
-          ))}
-        </Card>
+            </Card>
+          ) : null}
+        </>
       ) : null}
 
       {visibleActive === 'staff' ? (
@@ -468,6 +510,32 @@ export function EnterpriseModulesPage() {
         </Card>
       ) : null}
       {visibleActive === 'ai' ? <Card><h2>AI clinical assistant</h2><p>AI service interfaces are wired on the backend for symptom checking, summaries, diagnosis support, and prescription drafting.</p></Card> : null}
+
+      {showCardModal && selectedPatientId ? (
+        <Modal title="Confirm card issuance" onClose={() => { setShowCardModal(false); setIssuedCard(null); }}>
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {issuedCard ? (
+              <div style={{ display: 'grid', gap: '1rem', justifyItems: 'center', padding: '1rem 0' }}>
+                <VirtualCard card={issuedCard} />
+                <Button onClick={() => { setShowCardModal(false); setIssuedCard(null); }}>Done</Button>
+              </div>
+            ) : (
+              <>
+                <p style={{ color: 'var(--app-muted)', lineHeight: 1.6, margin: 0 }}>
+                  Issue a new Vee-care membership card to <strong>{(patients.data?.data ?? []).find((p) => p.user?.id === selectedPatientId)?.user?.name ?? 'this patient'}</strong>?
+                  This will generate a unique card number and set it active for 2 years.
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                  <Button variant="ghost" onClick={() => setShowCardModal(false)}>Cancel</Button>
+                  <Button onClick={() => issueCard.mutate(selectedPatientId)} disabled={issueCard.isPending}>
+                    <CreditCard size={17} /> Confirm & issue
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </Modal>
+      ) : null}
     </div>
   );
 }

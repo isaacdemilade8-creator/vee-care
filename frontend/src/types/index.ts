@@ -236,6 +236,7 @@ export interface PatientProfile {
   chronicConditions: string[];
   emergencyContact?: Record<string, string>;
   user?: User;
+  card?: { id: number; cardNumber: string; status: string } | null;
 }
 
 export interface PostComment {
