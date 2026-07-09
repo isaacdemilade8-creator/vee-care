@@ -59,7 +59,7 @@ class EnterpriseController extends Controller
         $this->ensurePatientProfiles();
 
         $profiles = PatientProfile::query()
-            ->with('user')
+            ->with('user.patientCard')
             ->when($request->string('search')->toString(), function ($query, $search): void {
                 $query->where('patient_number', 'like', "%{$search}%")
                     ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));

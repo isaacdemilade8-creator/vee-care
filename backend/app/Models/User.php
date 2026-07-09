@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\PatientCard;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -60,6 +61,11 @@ class User extends Authenticatable
     public function patientProfile(): HasOne
     {
         return $this->hasOne(PatientProfile::class);
+    }
+
+    public function patientCard(): HasOne
+    {
+        return $this->hasOne(PatientCard::class, 'patient_id')->latestOfMany();
     }
 
     public function sentMessages(): HasMany

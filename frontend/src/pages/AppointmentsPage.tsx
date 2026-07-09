@@ -44,6 +44,7 @@ export function AppointmentsPage() {
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [payByCard, setPayByCard] = useState(true);
+  const [paymentMode, setPaymentMode] = useState<'request_card' | 'pay_direct'>('request_card');
   const [appointmentData, setAppointmentData] = useState<z.output<typeof appointmentSchema> | null>(null);
   const appointments = useAppointments(status ? { status } : undefined);
   const allDoctors = useDoctors();
@@ -60,6 +61,13 @@ export function AppointmentsPage() {
   const hasActiveCard = Boolean(myCard?.card?.status === 'active');
   const createAppointment = useApiMutation((payload: unknown) => endpoints.createAppointment(payload), ['appointments'], 'Appointment requested');
   const updateAppointment = useApiMutation(({ id, payload }: { id: number; payload: unknown }) => endpoints.updateAppointment(id, payload), ['appointments'], 'Appointment updated');
+  const requestCardMutation = useMutation({
+    mutationFn: async (payload: { cardNumber: string; cardName: string; expiry: string; cvv: string }) =>
+      (await endpoints.requestPatientCard(payload)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-card'] });
+    },
+  });
   const createReview = useMutation({
     mutationFn: ({ doctorId, payload }: { doctorId: number; payload: unknown }) => endpoints.createProfileReview(doctorId, payload),
     onSuccess: async () => {
@@ -99,37 +107,39 @@ export function AppointmentsPage() {
 
   const goToPayment = () => setBookingStep('payment');
 
-  const completeBooking = () => {
-    if (!appointmentData) return;
+  const bookDirect = (data: z.output<typeof appointmentSchema>) => {
+    createAppointment.mutate(data, {
+      onSuccess: () => {
+        setShowModal(false);
+        setBookingStep('details');
+        setAppointmentData(null);
+      },
+    });
+  };
 
-    if (hasActiveCard) {
-      createAppointment.mutate(appointmentData, {
-        onSuccess: () => {
-          setShowModal(false);
-          setBookingStep('details');
-          setAppointmentData(null);
-        },
-      });
-    } else {
-      toast.success('Payment processed (demo)');
-      createAppointment.mutate(appointmentData, {
-        onSuccess: () => {
-          setShowModal(false);
-          setBookingStep('details');
-          setAppointmentData(null);
-        },
-      });
-    }
+  const onPayDirect = () => {
+    if (!appointmentData) return;
+    toast.success('Payment processed (demo)');
+    bookDirect(appointmentData);
+  };
+
+  const onRequestCard = (paymentData: { cardNumber: string; cardName: string; expiry: string; cvv: string }) => {
+    if (!appointmentData) return;
+    requestCardMutation.mutate(paymentData, {
+      onSuccess: () => {
+        toast.success('Card payment processed (demo)');
+        toast.success('Membership card issued!');
+        bookDirect(appointmentData!);
+      },
+      onError: () => {
+        toast.error('Card request failed. Please try again.');
+      },
+    });
   };
 
   const bookOrProceed = (data: z.output<typeof appointmentSchema>) => {
     if (hasActiveCard) {
-      createAppointment.mutate(data, {
-        onSuccess: () => {
-          setShowModal(false);
-          setBookingStep('details');
-        },
-      });
+      bookDirect(data);
     } else {
       setAppointmentData(data);
       goToPayment();
@@ -223,7 +233,7 @@ export function AppointmentsPage() {
                 <TextField label="Reason" error={errors.reason?.message} {...register('reason')} />
               </div>
               <TextAreaField label="Notes" {...register('notes')} />
-              <Button>{hasActiveCard ? 'Book appointment' : 'Request for a medical card'}</Button>
+              <Button>{hasActiveCard ? 'Book appointment' : 'Proceed to payment'}</Button>
             </form>
           ) : (
             <div className={styles.form}>
@@ -257,32 +267,94 @@ export function AppointmentsPage() {
                       <p style={{ color: 'var(--app-muted)', fontSize: '0.85rem', margin: 0, textAlign: 'center' }}>
                         Your membership card will be charged for this appointment.
                       </p>
-                      <Button onClick={() => completeBooking()}>
+                      <Button onClick={() => appointmentData && bookDirect(appointmentData)}>
                         Confirm with card
                       </Button>
                     </div>
                   ) : null}
-                </div>
-              ) : null}
 
-              {!hasActiveCard || !payByCard ? (
-                <form onSubmit={handlePaymentSubmit(() => completeBooking())}>
-                  <div className={styles.formRow}>
-                    <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
-                  </div>
-                  <div className={styles.formRow}>
-                    <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
-                  </div>
-                  <div className={styles.formRow}>
-                    <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
-                    <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
-                  </div>
-                  <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
-                    This is a demo &mdash; no real payment will be processed.
-                  </p>
-                  <Button>Pay & book appointment</Button>
-                </form>
-              ) : null}
+                  {!payByCard ? (
+                    <form onSubmit={handlePaymentSubmit(() => onPayDirect())}>
+                      <div className={styles.formRow}>
+                        <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
+                      </div>
+                      <div className={styles.formRow}>
+                        <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
+                      </div>
+                      <div className={styles.formRow}>
+                        <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
+                        <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
+                      </div>
+                      <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
+                        This is a demo &mdash; no real payment will be processed.
+                      </p>
+                      <Button>Pay & book appointment</Button>
+                    </form>
+                  ) : null}
+                </div>
+              ) : (
+                <div className={styles.cardPaymentOption}>
+                  <label className={styles.paymentRadio}>
+                    <input type="radio" name="no_card_method" checked={paymentMode === 'request_card'} onChange={() => setPaymentMode('request_card')} />
+                    <span className={styles.paymentRadioMark} />
+                    <div>
+                      <strong>Request a medical card</strong>
+                      <p>Get a Vee-care membership card for faster bookings in the future</p>
+                    </div>
+                  </label>
+                  <label className={styles.paymentRadio}>
+                    <input type="radio" name="no_card_method" checked={paymentMode === 'pay_direct'} onChange={() => setPaymentMode('pay_direct')} />
+                    <span className={styles.paymentRadioMark} />
+                    <div>
+                      <strong>Pay directly</strong>
+                      <p>Pay for this appointment only without a membership card</p>
+                    </div>
+                  </label>
+
+                  {paymentMode === 'request_card' ? (
+                    <form onSubmit={handlePaymentSubmit((paymentData) => onRequestCard(paymentData))}>
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        <p style={{ color: 'var(--app-muted)', fontSize: '0.85rem', margin: 0 }}>
+                          Your membership card costs a one-time fee. Enter your payment details below.
+                        </p>
+                        <div className={styles.formRow}>
+                          <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
+                        </div>
+                        <div className={styles.formRow}>
+                          <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
+                        </div>
+                        <div className={styles.formRow}>
+                          <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
+                          <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
+                        </div>
+                        <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
+                          This is a demo &mdash; no real payment will be processed.
+                        </p>
+                        <Button disabled={requestCardMutation.isPending}>
+                          {requestCardMutation.isPending ? 'Processing...' : 'Pay & get card'}
+                        </Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <form onSubmit={handlePaymentSubmit(() => onPayDirect())}>
+                      <div className={styles.formRow}>
+                        <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
+                      </div>
+                      <div className={styles.formRow}>
+                        <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
+                      </div>
+                      <div className={styles.formRow}>
+                        <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
+                        <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
+                      </div>
+                      <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
+                        This is a demo &mdash; no real payment will be processed.
+                      </p>
+                      <Button>Pay & book appointment</Button>
+                    </form>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </Modal>
