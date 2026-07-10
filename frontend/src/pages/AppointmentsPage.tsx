@@ -233,7 +233,7 @@ export function AppointmentsPage() {
                 <TextField label="Reason" error={errors.reason?.message} {...register('reason')} />
               </div>
               <TextAreaField label="Notes" {...register('notes')} />
-              <Button>{hasActiveCard ? 'Book appointment' : 'Proceed to payment'}</Button>
+              <Button>{hasActiveCard ? 'Book appointment' : 'Get a medical card'}</Button>
             </form>
           ) : (
             <div className={styles.form}>
