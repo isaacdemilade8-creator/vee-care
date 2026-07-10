@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Edit3, ImagePlus, MessageCircle, Newspaper, Send, Trash2, UserPlus } from 'lucide-react';
+import { BriefcaseMedical, Edit3, FlaskConical, ImagePlus, MessageCircle, Newspaper, Pill, Send, ShieldCheck, Stethoscope, Trash2, UserPlus, Users } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Card, StatCard } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
@@ -16,6 +16,7 @@ import { useAdminAnalytics, useAdminUsers, usePosts } from '../hooks/useApi';
 import { endpoints } from '../services/endpoints';
 import type { Post } from '../types';
 import styles from './TablePage.module.scss';
+import dashboardStyles from './DashboardPage.module.scss';
 
 const platformRoles = [
   { label: 'Patient', value: 'patient' },
@@ -67,8 +68,12 @@ export function AdminPanel() {
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const isSuperAdmin = user?.role === 'super_admin';
+  const [roleFilter, setRoleFilter] = useState('');
   const analytics = useAdminAnalytics();
-  const users = useAdminUsers(search ? { search } : undefined);
+  const users = useAdminUsers({
+    ...(search ? { search } : {}),
+    ...(roleFilter ? { role: roleFilter } : {}),
+  });
   const posts = usePosts({ per_page: '50' });
   const roles = isSuperAdmin ? platformRoles : adminManagedRoles;
   const visiblePosts = (posts.data?.data ?? []).filter((post) => {
@@ -240,7 +245,6 @@ export function AdminPanel() {
       <motion.div className={styles.stats} variants={pageMotion}>
         <StatCard label="Total users" value={analytics.data?.users.total ?? 0} />
         <StatCard label="Patients" value={analytics.data?.users.patients ?? 0} />
-        <StatCard label="Doctors" value={analytics.data?.users.doctors ?? 0} />
         <StatCard label="Staff" value={analytics.data?.users.staff ?? 0} />
         <StatCard label="Pending appointments" value={analytics.data?.appointments.pending ?? 0} />
         <StatCard label="Medical records" value={analytics.data?.medicalRecords ?? 0} />
@@ -323,6 +327,84 @@ export function AdminPanel() {
               Register user
             </Button>
           </form>
+        </Card>
+      </motion.div>
+
+      <motion.div variants={itemMotion}>
+        <Card>
+          <div className={styles.sectionTitle}>
+            <span>Staff categories</span>
+            <h3>Staff by role</h3>
+            <p>Click a category to filter staff by their role.</p>
+          </div>
+          <div className={dashboardStyles.actions}>
+            <button
+              className={`${dashboardStyles.quickAction} ${!roleFilter ? dashboardStyles.selectedCategory : ''}`}
+              onClick={() => setRoleFilter('')}
+              style={{ background: 'transparent', border: '1px solid var(--app-line)', borderRadius: '12px', cursor: 'pointer', padding: '0', textAlign: 'left' }}
+            >
+              <Card className={dashboardStyles.quickAction}>
+                <Users />
+                <span>All staff</span>
+                <small style={{ color: 'var(--app-muted)' }}>{analytics.data?.users.staff ?? 0}</small>
+              </Card>
+            </button>
+            <button
+              className={`${dashboardStyles.quickAction} ${roleFilter === 'doctor' ? dashboardStyles.selectedCategory : ''}`}
+              onClick={() => setRoleFilter('doctor')}
+              style={{ background: 'transparent', border: '1px solid var(--app-line)', borderRadius: '12px', cursor: 'pointer', padding: '0', textAlign: 'left' }}
+            >
+              <Card className={dashboardStyles.quickAction}>
+                <Stethoscope />
+                <span>Doctors</span>
+                <small style={{ color: 'var(--app-muted)' }}>{analytics.data?.users.doctors ?? 0}</small>
+              </Card>
+            </button>
+            <button
+              className={`${dashboardStyles.quickAction} ${roleFilter === 'nurse' ? dashboardStyles.selectedCategory : ''}`}
+              onClick={() => setRoleFilter('nurse')}
+              style={{ background: 'transparent', border: '1px solid var(--app-line)', borderRadius: '12px', cursor: 'pointer', padding: '0', textAlign: 'left' }}
+            >
+              <Card className={dashboardStyles.quickAction}>
+                <BriefcaseMedical />
+                <span>Nurses</span>
+                <small style={{ color: 'var(--app-muted)' }}>{analytics.data?.users.nurses ?? 0}</small>
+              </Card>
+            </button>
+            <button
+              className={`${dashboardStyles.quickAction} ${roleFilter === 'lab_technician' ? dashboardStyles.selectedCategory : ''}`}
+              onClick={() => setRoleFilter('lab_technician')}
+              style={{ background: 'transparent', border: '1px solid var(--app-line)', borderRadius: '12px', cursor: 'pointer', padding: '0', textAlign: 'left' }}
+            >
+              <Card className={dashboardStyles.quickAction}>
+                <FlaskConical />
+                <span>Lab technicians</span>
+                <small style={{ color: 'var(--app-muted)' }}>{analytics.data?.users.lab_technicians ?? 0}</small>
+              </Card>
+            </button>
+            <button
+              className={`${dashboardStyles.quickAction} ${roleFilter === 'pharmacist' ? dashboardStyles.selectedCategory : ''}`}
+              onClick={() => setRoleFilter('pharmacist')}
+              style={{ background: 'transparent', border: '1px solid var(--app-line)', borderRadius: '12px', cursor: 'pointer', padding: '0', textAlign: 'left' }}
+            >
+              <Card className={dashboardStyles.quickAction}>
+                <Pill />
+                <span>Pharmacists</span>
+                <small style={{ color: 'var(--app-muted)' }}>{analytics.data?.users.pharmacists ?? 0}</small>
+              </Card>
+            </button>
+            <button
+              className={`${dashboardStyles.quickAction} ${roleFilter === 'admin' ? dashboardStyles.selectedCategory : ''}`}
+              onClick={() => setRoleFilter('admin')}
+              style={{ background: 'transparent', border: '1px solid var(--app-line)', borderRadius: '12px', cursor: 'pointer', padding: '0', textAlign: 'left' }}
+            >
+              <Card className={dashboardStyles.quickAction}>
+                <ShieldCheck />
+                <span>Admins</span>
+                <small style={{ color: 'var(--app-muted)' }}>{analytics.data?.users.admins ?? 0}</small>
+              </Card>
+            </button>
+          </div>
         </Card>
       </motion.div>
 

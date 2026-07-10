@@ -17,6 +17,8 @@ import { endpoints } from '../services/endpoints';
 import type { Appointment } from '../types';
 import styles from './TablePage.module.scss';
 
+type BookingStep = 'initial' | 'new_patient_info' | 'link_physical' | 'details' | 'payment';
+
 const appointmentSchema = z.object({
   doctor_id: z.coerce.number().min(1),
   scheduled_at: z.string().min(1),
@@ -36,16 +38,13 @@ export function AppointmentsPage() {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [bookingStep, setBookingStep] = useState<'details' | 'payment'>('details');
+  const [bookingStep, setBookingStep] = useState<BookingStep>('initial');
   const [doctorSearch, setDoctorSearch] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [minRating, setMinRating] = useState('');
   const [reviewAppointment, setReviewAppointment] = useState<Appointment | null>(null);
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
-  const [payByCard, setPayByCard] = useState(true);
-  const [paymentMode, setPaymentMode] = useState<'request_card' | 'pay_direct'>('request_card');
-  const [appointmentData, setAppointmentData] = useState<z.output<typeof appointmentSchema> | null>(null);
   const appointments = useAppointments(status ? { status } : undefined);
   const allDoctors = useDoctors();
   const doctors = useDoctors({
@@ -59,15 +58,19 @@ export function AppointmentsPage() {
     enabled: user?.role === 'patient',
   });
   const hasActiveCard = Boolean(myCard?.card?.status === 'active');
+  const [patientInfo, setPatientInfo] = useState({
+    phone: '',
+    date_of_birth: '',
+    allergies: '',
+    chronic_conditions: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+  });
+  const [physicalCardNumber, setPhysicalCardNumber] = useState('');
+  const [appointmentData, setAppointmentData] = useState<z.output<typeof appointmentSchema> | null>(null);
+  const [payDirect, setPayDirect] = useState(false);
   const createAppointment = useApiMutation((payload: unknown) => endpoints.createAppointment(payload), ['appointments'], 'Appointment requested');
   const updateAppointment = useApiMutation(({ id, payload }: { id: number; payload: unknown }) => endpoints.updateAppointment(id, payload), ['appointments'], 'Appointment updated');
-  const requestCardMutation = useMutation({
-    mutationFn: async (payload: { cardNumber: string; cardName: string; expiry: string; cvv: string }) =>
-      (await endpoints.requestPatientCard(payload)).data,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-card'] });
-    },
-  });
   const createReview = useMutation({
     mutationFn: ({ doctorId, payload }: { doctorId: number; payload: unknown }) => endpoints.createProfileReview(doctorId, payload),
     onSuccess: async () => {
@@ -80,6 +83,32 @@ export function AppointmentsPage() {
       setReviewAppointment(null);
       setRating(5);
       setReviewComment('');
+    },
+  });
+  const registerAndRequestCardMutation = useMutation({
+    mutationFn: async (payload: Parameters<typeof endpoints.registerAndRequestCard>[0]) =>
+      (await endpoints.registerAndRequestCard(payload)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-card'] });
+      toast.success('Card issued successfully!');
+      if (appointmentData) bookDirect(appointmentData);
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Card request failed. Please try again.';
+      toast.error(message);
+    },
+  });
+  const linkPhysicalCardMutation = useMutation({
+    mutationFn: async (payload: { physical_card_number: string }) =>
+      (await endpoints.linkPhysicalCard(payload)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-card'] });
+      toast.success('Physical card linked! Virtual card issued.');
+      if (appointmentData) bookDirect(appointmentData);
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Failed to link card. Please try again.';
+      toast.error(message);
     },
   });
   const { register, handleSubmit, control, formState: { errors } } = useForm<z.input<typeof appointmentSchema>, unknown, z.output<typeof appointmentSchema>>({
@@ -105,44 +134,23 @@ export function AppointmentsPage() {
 
   const selectedDoctor = doctors.data?.data.find((doctor) => doctor.id === selectedDoctorId);
 
-  const goToPayment = () => setBookingStep('payment');
-
   const bookDirect = (data: z.output<typeof appointmentSchema>) => {
     createAppointment.mutate(data, {
       onSuccess: () => {
         setShowModal(false);
-        setBookingStep('details');
+        setBookingStep('initial');
         setAppointmentData(null);
       },
     });
   };
 
-  const onPayDirect = () => {
-    if (!appointmentData) return;
-    toast.success('Payment processed (demo)');
-    bookDirect(appointmentData);
-  };
-
-  const onRequestCard = (paymentData: { cardNumber: string; cardName: string; expiry: string; cvv: string }) => {
-    if (!appointmentData) return;
-    requestCardMutation.mutate(paymentData, {
-      onSuccess: () => {
-        toast.success('Card payment processed (demo)');
-        toast.success('Membership card issued!');
-        bookDirect(appointmentData!);
-      },
-      onError: () => {
-        toast.error('Card request failed. Please try again.');
-      },
-    });
-  };
-
-  const bookOrProceed = (data: z.output<typeof appointmentSchema>) => {
+  const handleBookSubmit = (data: z.output<typeof appointmentSchema>) => {
     if (hasActiveCard) {
       bookDirect(data);
     } else {
       setAppointmentData(data);
-      goToPayment();
+      setPayDirect(false);
+      setBookingStep('initial');
     }
   };
 
@@ -158,7 +166,7 @@ export function AppointmentsPage() {
             <option value="rejected">Rejected</option>
             <option value="completed">Completed</option>
           </select>
-          {user?.role === 'patient' ? <Button onClick={() => setShowModal(true)}>Book</Button> : null}
+          {user?.role === 'patient' ? <Button onClick={() => { setShowModal(true); setBookingStep('details'); }}>Book</Button> : null}
         </div>
       </div>
       <Card>
@@ -197,9 +205,129 @@ export function AppointmentsPage() {
         )}
       </Card>
       {showModal ? (
-        <Modal title={bookingStep === 'details' ? 'Book appointment' : 'Payment'} onClose={() => { setShowModal(false); setBookingStep('details'); }}>
+        <Modal
+          title={
+            bookingStep === 'initial' ? 'Welcome' :
+            bookingStep === 'new_patient_info' ? 'Patient information' :
+            bookingStep === 'link_physical' ? 'Link physical card' :
+            bookingStep === 'details' ? 'Book appointment' :
+            'Payment'
+          }
+          onClose={() => { setShowModal(false); setBookingStep('initial'); setPayDirect(false); }}
+        >
+          {bookingStep === 'initial' ? (
+            <div className={styles.form}>
+              <div className={styles.sectionTitle}>
+                <h3>Have you been using this hospital/clinic physically before?</h3>
+                <p>We'll set you up with a virtual card for faster service access.</p>
+              </div>
+              <div style={{ display: 'grid', gap: '0.75rem', paddingTop: '0.5rem' }}>
+                <Button onClick={() => setBookingStep('link_physical')}>
+                  Yes, I have a physical card
+                </Button>
+                <Button variant="secondary" onClick={() => setBookingStep('new_patient_info')}>
+                  No, I'm new here
+                </Button>
+                <Button variant="ghost" onClick={() => { setPayDirect(true); setBookingStep('payment'); }}>
+                  Pay directly (no card)
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {bookingStep === 'new_patient_info' ? (
+            <div className={styles.form}>
+              <div className={styles.sectionTitle}>
+                <h3>Tell us about yourself</h3>
+                <p>We need some information to issue your membership card.</p>
+              </div>
+              <div className={styles.formRow}>
+                <TextField label="Full name" value={user?.name ?? ''} disabled />
+              </div>
+              <div className={styles.formRow}>
+                <TextField label="Email" value={user?.email ?? ''} disabled />
+              </div>
+              <div className={styles.formRow}>
+                <TextField
+                  label="Phone"
+                  value={patientInfo.phone}
+                  onChange={(event) => setPatientInfo({ ...patientInfo, phone: event.target.value })}
+                  placeholder="+1 234 567 890"
+                />
+              </div>
+              <div className={styles.formRow}>
+                <TextField
+                  label="Date of birth"
+                  type="date"
+                  value={patientInfo.date_of_birth}
+                  onChange={(event) => setPatientInfo({ ...patientInfo, date_of_birth: event.target.value })}
+                />
+              </div>
+              <div className={styles.formRow}>
+                <TextAreaField
+                  label="Allergies (one per line)"
+                  value={patientInfo.allergies}
+                  onChange={(event) => setPatientInfo({ ...patientInfo, allergies: event.target.value })}
+                  placeholder="Peanuts&#10;Penicillin&#10;Latex"
+                  style={{ minHeight: '5rem' }}
+                />
+              </div>
+              <div className={styles.formRow}>
+                <TextAreaField
+                  label="Chronic conditions (one per line)"
+                  value={patientInfo.chronic_conditions}
+                  onChange={(event) => setPatientInfo({ ...patientInfo, chronic_conditions: event.target.value })}
+                  placeholder="Diabetes&#10;Hypertension"
+                  style={{ minHeight: '5rem' }}
+                />
+              </div>
+              <div className={styles.formRow}>
+                <TextField
+                  label="Emergency contact name"
+                  value={patientInfo.emergency_contact_name}
+                  onChange={(event) => setPatientInfo({ ...patientInfo, emergency_contact_name: event.target.value })}
+                  placeholder="Jane Doe"
+                />
+              </div>
+              <div className={styles.formRow}>
+                <TextField
+                  label="Emergency contact phone"
+                  value={patientInfo.emergency_contact_phone}
+                  onChange={(event) => setPatientInfo({ ...patientInfo, emergency_contact_phone: event.target.value })}
+                  placeholder="+1 234 567 891"
+                />
+              </div>
+              <Button onClick={() => setBookingStep('payment')}>Done</Button>
+            </div>
+          ) : null}
+
+          {bookingStep === 'link_physical' ? (
+            <div className={styles.form}>
+              <div className={styles.sectionTitle}>
+                <h3>Enter your physical card details</h3>
+                <p>Provide the card number from your hospital/clinic physical card to link it to your account.</p>
+              </div>
+              <div className={styles.formRow}>
+                <TextField
+                  label="Physical card number"
+                  value={physicalCardNumber}
+                  onChange={(event) => setPhysicalCardNumber(event.target.value)}
+                  placeholder="e.g. PHY-1234-5678"
+                />
+              </div>
+              <Button
+                disabled={!physicalCardNumber || linkPhysicalCardMutation.isPending}
+                onClick={() => {
+                  linkPhysicalCardMutation.mutate({ physical_card_number: physicalCardNumber });
+                }}
+              >
+                {linkPhysicalCardMutation.isPending ? 'Linking...' : 'Link card'}
+              </Button>
+            </div>
+          ) : null}
+
           {bookingStep === 'details' ? (
-            <form className={`${styles.form} ${styles.bookingForm}`} onSubmit={handleSubmit(bookOrProceed)}>
+            <form className={`${styles.form} ${styles.bookingForm}`} onSubmit={handleSubmit(handleBookSubmit)}>
               <div className={styles.sectionTitle}>
                 <h3>Find the right practitioner</h3>
                 <p>Filter by specialty, name, or patient rating before choosing a time.</p>
@@ -233,130 +361,62 @@ export function AppointmentsPage() {
                 <TextField label="Reason" error={errors.reason?.message} {...register('reason')} />
               </div>
               <TextAreaField label="Notes" {...register('notes')} />
-              <Button>{hasActiveCard ? 'Book appointment' : 'Get a medical card'}</Button>
+              <Button>Book appointment</Button>
             </form>
-          ) : (
+          ) : null}
+
+          {bookingStep === 'payment' ? (
             <div className={styles.form}>
               <div className={styles.sectionTitle}>
-                <h3>Payment method</h3>
-                <p>Select how you would like to pay for this appointment.</p>
+                <h3>{payDirect ? 'Payment' : 'Payment for membership card'}</h3>
+                <p>{payDirect ? 'Pay for this appointment only.' : 'Your membership card costs a one-time fee. Enter your payment details below.'}</p>
               </div>
+              <form onSubmit={handlePaymentSubmit((paymentData) => {
+                if (payDirect) {
+                  toast.success('Payment processed (demo)');
+                  if (appointmentData) bookDirect(appointmentData);
+                } else {
+                  const allergiesList = patientInfo.allergies
+                    ? patientInfo.allergies.split('\n').map((s) => s.trim()).filter(Boolean)
+                    : undefined;
+                  const chronicList = patientInfo.chronic_conditions
+                    ? patientInfo.chronic_conditions.split('\n').map((s) => s.trim()).filter(Boolean)
+                    : undefined;
+                  const emergencyContact: Record<string, string> = {};
+                  if (patientInfo.emergency_contact_name) emergencyContact.name = patientInfo.emergency_contact_name;
+                  if (patientInfo.emergency_contact_phone) emergencyContact.phone = patientInfo.emergency_contact_phone;
 
-              {hasActiveCard ? (
-                <div className={styles.cardPaymentOption}>
-                  <label className={styles.paymentRadio}>
-                    <input type="radio" name="pay_method" checked={payByCard} onChange={() => setPayByCard(true)} />
-                    <span className={styles.paymentRadioMark} />
-                    <div>
-                      <strong>Membership card</strong>
-                      <p>Pay with your Vee-care card &middot; {myCard?.card?.cardNumber}</p>
-                    </div>
-                  </label>
-                  <label className={styles.paymentRadio}>
-                    <input type="radio" name="pay_method" checked={!payByCard} onChange={() => setPayByCard(false)} />
-                    <span className={styles.paymentRadioMark} />
-                    <div>
-                      <strong>Credit / debit card</strong>
-                      <p>Pay with a Mastercard, Visa, or other card</p>
-                    </div>
-                  </label>
-
-                  {payByCard && myCard?.card ? (
-                    <div style={{ display: 'grid', gap: '1rem', justifyItems: 'center', padding: '0.5rem 0' }}>
-                      <VirtualCard card={myCard.card} />
-                      <p style={{ color: 'var(--app-muted)', fontSize: '0.85rem', margin: 0, textAlign: 'center' }}>
-                        Your membership card will be charged for this appointment.
-                      </p>
-                      <Button onClick={() => appointmentData && bookDirect(appointmentData)}>
-                        Confirm with card
-                      </Button>
-                    </div>
-                  ) : null}
-
-                  {!payByCard ? (
-                    <form onSubmit={handlePaymentSubmit(() => onPayDirect())}>
-                      <div className={styles.formRow}>
-                        <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
-                      </div>
-                      <div className={styles.formRow}>
-                        <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
-                      </div>
-                      <div className={styles.formRow}>
-                        <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
-                        <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
-                      </div>
-                      <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
-                        This is a demo &mdash; no real payment will be processed.
-                      </p>
-                      <Button>Pay & book appointment</Button>
-                    </form>
-                  ) : null}
+                  registerAndRequestCardMutation.mutate({
+                    ...paymentData,
+                    phone: patientInfo.phone || undefined,
+                    date_of_birth: patientInfo.date_of_birth || undefined,
+                    allergies: allergiesList,
+                    chronic_conditions: chronicList,
+                    emergency_contact: Object.keys(emergencyContact).length ? emergencyContact : undefined,
+                  });
+                }
+              })}>
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  <div className={styles.formRow}>
+                    <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
+                  </div>
+                  <div className={styles.formRow}>
+                    <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
+                  </div>
+                  <div className={styles.formRow}>
+                    <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
+                    <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
+                  </div>
+                  <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
+                    This is a demo &mdash; no real payment will be processed.
+                  </p>
+                  <Button disabled={registerAndRequestCardMutation.isPending}>
+                    {payDirect ? 'Pay & book appointment' : registerAndRequestCardMutation.isPending ? 'Processing...' : 'Pay & get card'}
+                  </Button>
                 </div>
-              ) : (
-                <div className={styles.cardPaymentOption}>
-                  <label className={styles.paymentRadio}>
-                    <input type="radio" name="no_card_method" checked={paymentMode === 'request_card'} onChange={() => setPaymentMode('request_card')} />
-                    <span className={styles.paymentRadioMark} />
-                    <div>
-                      <strong>Request a medical card</strong>
-                      <p>Get a Vee-care membership card for faster bookings in the future</p>
-                    </div>
-                  </label>
-                  <label className={styles.paymentRadio}>
-                    <input type="radio" name="no_card_method" checked={paymentMode === 'pay_direct'} onChange={() => setPaymentMode('pay_direct')} />
-                    <span className={styles.paymentRadioMark} />
-                    <div>
-                      <strong>Pay directly</strong>
-                      <p>Pay for this appointment only without a membership card</p>
-                    </div>
-                  </label>
-
-                  {paymentMode === 'request_card' ? (
-                    <form onSubmit={handlePaymentSubmit((paymentData) => onRequestCard(paymentData))}>
-                      <div style={{ display: 'grid', gap: '0.75rem' }}>
-                        <p style={{ color: 'var(--app-muted)', fontSize: '0.85rem', margin: 0 }}>
-                          Your membership card costs a one-time fee. Enter your payment details below.
-                        </p>
-                        <div className={styles.formRow}>
-                          <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
-                        </div>
-                        <div className={styles.formRow}>
-                          <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
-                        </div>
-                        <div className={styles.formRow}>
-                          <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
-                          <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
-                        </div>
-                        <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
-                          This is a demo &mdash; no real payment will be processed.
-                        </p>
-                        <Button disabled={requestCardMutation.isPending}>
-                          {requestCardMutation.isPending ? 'Processing...' : 'Pay & get card'}
-                        </Button>
-                      </div>
-                    </form>
-                  ) : (
-                    <form onSubmit={handlePaymentSubmit(() => onPayDirect())}>
-                      <div className={styles.formRow}>
-                        <TextField label="Card number" placeholder="1234 5678 9012 3456" error={paymentErrors.cardNumber?.message} {...registerPayment('cardNumber')} />
-                      </div>
-                      <div className={styles.formRow}>
-                        <TextField label="Cardholder name" placeholder="John Doe" error={paymentErrors.cardName?.message} {...registerPayment('cardName')} />
-                      </div>
-                      <div className={styles.formRow}>
-                        <TextField label="Expiry (MM/YY)" placeholder="12/26" error={paymentErrors.expiry?.message} {...registerPayment('expiry')} />
-                        <TextField label="CVV" placeholder="123" error={paymentErrors.cvv?.message} {...registerPayment('cvv')} />
-                      </div>
-                      <p style={{ color: 'var(--app-muted)', fontSize: '0.8rem', margin: '0.5rem 0' }}>
-                        This is a demo &mdash; no real payment will be processed.
-                      </p>
-                      <Button>Pay & book appointment</Button>
-                    </form>
-                  )}
-                </div>
-              )}
+              </form>
             </div>
-          )}
+          ) : null}
         </Modal>
       ) : null}
       {reviewAppointment?.doctor ? (

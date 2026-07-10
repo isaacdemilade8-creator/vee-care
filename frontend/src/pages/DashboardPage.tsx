@@ -154,7 +154,7 @@ export function DashboardPage() {
         <div className={styles.grid}>
           <StatCard label="Platform users" value={adminStats.data?.users.total ?? 0} />
           <StatCard label="Patients" value={adminStats.data?.users.patients ?? 0} />
-          <StatCard label="Doctors" value={adminStats.data?.users.doctors ?? 0} />
+          <StatCard label="Staff" value={adminStats.data?.users.staff ?? 0} />
           <StatCard label="Appointments" value={adminStats.data?.appointments.total ?? 0} />
           <StatCard label="Messages" value={adminStats.data?.messages ?? 0} />
           <StatCard label="Medical records" value={adminStats.data?.medicalRecords ?? 0} />

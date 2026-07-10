@@ -33,13 +33,21 @@ class AdminController extends Controller
             $userScope->whereNot('role', 'super_admin');
         }
 
+        $allStaffRoles = ['doctor', 'nurse', 'lab_technician', 'pharmacist', 'admin'];
+        if ($isSuperAdmin) {
+            $allStaffRoles[] = 'super_admin';
+        }
+
         return response()->json([
             'users' => [
                 'total' => (clone $userScope)->count(),
                 'patients' => (clone $userScope)->where('role', 'patient')->count(),
                 'doctors' => (clone $userScope)->where('role', 'doctor')->count(),
                 'admins' => (clone $userScope)->whereIn('role', ['super_admin', 'admin'])->count(),
-                'staff' => (clone $userScope)->whereIn('role', ['doctor', 'nurse', 'lab_technician', 'pharmacist'])->count(),
+                'staff' => (clone $userScope)->whereIn('role', $allStaffRoles)->count(),
+                'nurses' => (clone $userScope)->where('role', 'nurse')->count(),
+                'lab_technicians' => (clone $userScope)->where('role', 'lab_technician')->count(),
+                'pharmacists' => (clone $userScope)->where('role', 'pharmacist')->count(),
             ],
             'appointments' => [
                 'total' => (clone $appointmentScope)->count(),
