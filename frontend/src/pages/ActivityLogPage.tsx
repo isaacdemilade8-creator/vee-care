@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import { Activity, CalendarDays, ChevronLeft, ChevronRight, Filter, LogIn, LogOut, MessageCircle, Pill, ShieldCheck, Stethoscope, Upload, UserCog, UserPlus, Users } from 'lucide-react';
+import { Activity, CalendarDays, ChevronLeft, ChevronRight, LogIn, LogOut, MessageCircle, Pill, ShieldCheck, Stethoscope, Upload, UserCog, UserPlus, Users } from 'lucide-react';
 import { Card } from '../components/Card';
 import { SelectField } from '../components/FormField';
 import { useAuth } from '../context/AuthContext';

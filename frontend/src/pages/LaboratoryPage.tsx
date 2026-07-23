@@ -11,11 +11,8 @@ import { useAuth } from '../context/AuthContext';
 import { useEnterpriseLabTests, useEnterprisePatients } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
 import type { LabTest } from '../types';
+import { formValues } from '../utils/form';
 import styles from './TablePage.module.scss';
-
-function formValues(form: HTMLFormElement) {
-  return Object.fromEntries(new FormData(form)) as Record<string, string>;
-}
 
 export function LaboratoryPage() {
   const { user } = useAuth();

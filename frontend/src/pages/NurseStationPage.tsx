@@ -13,11 +13,8 @@ import { useMedicalRecords, useUrgentCareRequests } from '../hooks/useApi';
 import { useEnterprisePatients, useEnterpriseVitals } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
 import type { PatientProfile, UrgentCareRequest, Vital } from '../types';
+import { formValues } from '../utils/form';
 import styles from './TablePage.module.scss';
-
-function formValues(form: HTMLFormElement) {
-  return Object.fromEntries(new FormData(form)) as Record<string, string>;
-}
 
 export function NurseStationPage() {
   const { user } = useAuth();

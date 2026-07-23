@@ -10,11 +10,8 @@ import { SkeletonRows } from '../components/Skeleton';
 import { useEnterprisePharmacy } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
 import type { Medicine } from '../types';
+import { formValues } from '../utils/form';
 import styles from './TablePage.module.scss';
-
-function formValues(form: HTMLFormElement) {
-  return Object.fromEntries(new FormData(form)) as Record<string, string>;
-}
 
 export function DrugInventoryPage() {
   const queryClient = useQueryClient();

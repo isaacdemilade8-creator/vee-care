@@ -1,27 +1,17 @@
 import { ImagePlus, Send } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { endpoints } from '../services/endpoints';
+import { usePublishPost } from '../hooks/usePublishPost';
 import styles from './BlogPage.module.scss';
 
 export function CreateBlogPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [preview, setPreview] = useState('');
-  const createPost = useMutation({
-    mutationFn: (payload: unknown) => endpoints.createPost(payload),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['posts'] });
-      toast.success('Blog published');
-      navigate('/blog');
-    },
-  });
+  const createPost = usePublishPost(() => navigate('/blog'));
 
   return (
     <div className={styles.page}>
@@ -47,21 +37,11 @@ export function CreateBlogPage() {
             const formData = new FormData(form);
             const values = Object.fromEntries(formData) as Record<string, string>;
             const image = formData.get('image') as File | null;
-            const publish = (imageUrl?: string) => createPost.mutate({
-              title: values.title,
-              body: values.body,
-              image_url: imageUrl,
-            });
 
-            if (image?.size) {
-              const upload = new FormData();
-              upload.append('folder', 'posts');
-              upload.append('image', image);
-              endpoints.uploadImage(upload).then((response) => publish(response.data.url));
-              return;
-            }
-
-            publish();
+            createPost.mutate(
+              { title: values.title, body: values.body, image },
+              { onSuccess: () => { form.reset(); setPreview(''); } },
+            );
           }}
         >
           <div className={styles.writerMeta}>

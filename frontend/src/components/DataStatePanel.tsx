@@ -5,11 +5,12 @@ interface DataStatePanelProps {
   title: string;
   description: string;
   action?: ReactNode;
+  className?: string;
 }
 
-export function DataStatePanel({ title, description, action }: DataStatePanelProps) {
+export function DataStatePanel({ title, description, action, className }: DataStatePanelProps) {
   return (
-    <Card className="emptyState">
+    <Card className={className}>
       <h2>{title}</h2>
       <p>{description}</p>
       {action}

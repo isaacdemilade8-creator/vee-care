@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { endpoints } from '../services/endpoints';
+import { formValues } from '../utils/form';
 import styles from './AddMedicinePage.module.scss';
 
 type CreateMedicinePayload = {
@@ -23,10 +24,6 @@ type CreateMedicinePayload = {
   status: 'active';
   expires_at: string | null;
 };
-
-function formValues(form: HTMLFormElement) {
-  return Object.fromEntries(new FormData(form)) as Record<string, string>;
-}
 
 export function AddMedicinePage() {
   const navigate = useNavigate();

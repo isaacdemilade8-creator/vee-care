@@ -12,20 +12,8 @@ import { useAuth } from '../context/AuthContext';
 import { usePosts } from '../hooks/useApi';
 import { endpoints } from '../services/endpoints';
 import type { Post } from '../types';
+import { excerpt, formatDateLong as formatDate, readingTime } from '../utils/format';
 import styles from './BlogPage.module.scss';
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-}
-
-function readingTime(post: Post) {
-  const words = `${post.title ?? ''} ${post.body}`.trim().split(/\s+/).filter(Boolean).length;
-  return `${Math.max(1, Math.ceil(words / 180))} min read`;
-}
-
-function excerpt(body: string, length = 210) {
-  return body.length > length ? `${body.slice(0, length).trim()}...` : body;
-}
 
 function articleAlt(post: Post) {
   return post.title?.trim() || 'Vee-care Journal article image';
@@ -128,7 +116,7 @@ function ArticleCard({ post, featured = false }: { post: Post; featured?: boolea
       <div className={styles.articleBody}>
         <div className={styles.meta}>
           <span>{formatDate(post.createdAt)}</span>
-          <span>{readingTime(post)}</span>
+          <span>{readingTime(`${post.title ?? ''} ${post.body}`)}</span>
         </div>
         <h2>{post.title || 'Care update'}</h2>
         <p>{featured ? excerpt(post.body, 420) : excerpt(post.body)}</p>

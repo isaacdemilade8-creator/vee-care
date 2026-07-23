@@ -15,6 +15,8 @@ import { useAuth } from '../context/AuthContext';
 import { useAdminAnalytics, useAdminUsers, usePosts } from '../hooks/useApi';
 import { endpoints } from '../services/endpoints';
 import type { Post } from '../types';
+import { formValues } from '../utils/form';
+import { excerpt, formatDate } from '../utils/format';
 import styles from './TablePage.module.scss';
 
 const platformRoles = [
@@ -41,18 +43,6 @@ const itemMotion: Variants = {
   hidden: { opacity: 0, y: 14 },
   show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
 };
-
-function formValues(form: HTMLFormElement) {
-  return Object.fromEntries(new FormData(form)) as Record<string, string>;
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function excerpt(value: string, length = 130) {
-  return value.length > length ? `${value.slice(0, length).trim()}...` : value;
-}
 
 export function AdminPanel() {
   const { user } = useAuth();
