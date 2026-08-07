@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'tenant' => \App\Http\Middleware\ResolveTenant::class,
+        ]);
+
+        $middleware->api(prepend: [
+            \App\Http\Middleware\ResolveTenant::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => null);

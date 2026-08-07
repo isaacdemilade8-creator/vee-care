@@ -32,6 +32,43 @@ return [
 
     'connections' => [
 
+        'control' => [
+            'driver' => env('CONTROL_DB_CONNECTION', env('DB_CONNECTION', 'mysql')),
+            'url' => env('CONTROL_DB_URL', env('DB_URL')),
+            'host' => env('CONTROL_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('CONTROL_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('CONTROL_DB_DATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('CONTROL_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('CONTROL_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'tenant' => [
+            'driver' => env('TENANT_DB_DRIVER', env('DB_CONNECTION', 'mysql')),
+            'url' => env('TENANT_DB_URL'),
+            'host' => env('TENANT_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('TENANT_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('TENANT_DB_DATABASE'),
+            'username' => env('TENANT_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('TENANT_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),

@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AdminController;
-use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AppointmentController; 
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\MedicineOrderController;
 use App\Http\Controllers\Api\PatientCardController;
 use App\Http\Controllers\Api\PharmacyRequestController;
+use App\Http\Controllers\Api\Platform\TenantController as PlatformTenantController;
+use App\Http\Controllers\Api\PlatformAuthController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\PractitionerReviewController;
 use App\Http\Controllers\Api\PrescriptionController;
@@ -19,6 +21,45 @@ use App\Http\Controllers\Api\UrgentCareRequestController;
 use App\Http\Controllers\Api\UserProfileController;
 use App\Http\Controllers\Api\VideoConsultationController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Platform (control plane) routes
+|--------------------------------------------------------------------------
+|
+| Served on the Vee-Care platform domain. Platform administrators manage
+| tenants, domains, subscriptions and tenant migrations here. Authentication
+| runs against the control database via the dedicated "platform" guard.
+|
+*/
+
+Route::post('/platform/auth/login', [PlatformAuthController::class, 'login']);
+
+Route::middleware(['auth:platform', 'throttle:120,1'])->group(function (): void {
+    Route::get('/platform/me', [PlatformAuthController::class, 'me']);
+    Route::post('/platform/auth/logout', [PlatformAuthController::class, 'logout']);
+
+    Route::prefix('platform/tenants')->middleware('role:super_admin')->group(function (): void {
+        Route::get('/', [PlatformTenantController::class, 'index']);
+        Route::post('/', [PlatformTenantController::class, 'store']);
+        Route::get('/{tenant}', [PlatformTenantController::class, 'show']);
+        Route::patch('/{tenant}', [PlatformTenantController::class, 'update']);
+        Route::post('/{tenant}/domains', [PlatformTenantController::class, 'addDomain']);
+        Route::delete('/{tenant}/domains/{domain}', [PlatformTenantController::class, 'removeDomain']);
+        Route::post('/{tenant}/migrate', [PlatformTenantController::class, 'migrate']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Tenant application routes
+|--------------------------------------------------------------------------
+|
+| Served on tenant subdomains (e.g. hospital-one.vee-care.test). The
+| ResolveTenant middleware binds the current tenant's database before these
+| routes execute, so all models below query the tenant database.
+|
+*/
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);

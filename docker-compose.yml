@@ -2,7 +2,7 @@ services:
   mysql:
     image: mysql:8.4
     environment:
-      MYSQL_DATABASE: healthtech
+      MYSQL_DATABASE: vee_care_control
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
       - "3306:3306"
@@ -24,9 +24,16 @@ services:
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: healthtech
+      DB_DATABASE: vee_care_control
       DB_USERNAME: root
       DB_PASSWORD:
+      CONTROL_DB_HOST: mysql
+      CONTROL_DB_DATABASE: vee_care_control
+      TENANT_PLATFORM_DOMAIN: vee-care.test
+      TENANT_DB_DRIVER: mysql
+      TENANT_DB_HOST: mysql
+      TENANT_DB_USERNAME: root
+      TENANT_DB_PASSWORD:
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
       BROADCAST_CONNECTION: log

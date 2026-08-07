@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="TENANT_DB_DRIVER" value="sqlite" force="true"/>
+        <env name="TENANT_PLATFORM_DOMAIN" value="vee-care.test" force="true"/>
     </php>
 </phpunit>
