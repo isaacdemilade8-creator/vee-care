@@ -16,7 +16,7 @@ class PostCommentResource extends JsonResource
                 'id' => $this->author->id,
                 'name' => $this->author->name,
                 'email' => '',
-                'role' => $this->author->role === 'hospital_admin' ? 'admin' : $this->author->role,
+                'role' => $this->author->role,
                 'avatarUrl' => $this->author->avatar_url,
             ]),
             'createdAt' => $this->created_at?->toISOString(),

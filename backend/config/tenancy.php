@@ -65,4 +65,19 @@ return [
     */
 
     'migrations_path' => 'database/migrations/tenant',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hospital Admin Invitation
+    |--------------------------------------------------------------------------
+    |
+    | Single-use invitation tokens issued when a hospital application is
+    | approved. Only the token digest is stored; the plaintext token is
+    | delivered to the approver once and must be redeemed before expiry.
+    |
+    */
+
+    'invitation' => [
+        'expiry_days' => env('TENANT_INVITATION_EXPIRY_DAYS', 7),
+    ],
 ];

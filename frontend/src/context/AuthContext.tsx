@@ -22,16 +22,6 @@ function unwrapUser(response: UserResponse): User {
   return 'data' in response ? response.data : response;
 }
 
-function normalizeUser(user: UserResponse): User {
-  const unwrappedUser = unwrapUser(user);
-
-  if ((unwrappedUser.role as string) === 'hospital_admin') {
-    return { ...unwrappedUser, role: 'admin' };
-  }
-
-  return unwrappedUser;
-}
-
 function readStoredUser(): User | null {
   const stored = localStorage.getItem('healthtech_user');
 
@@ -40,7 +30,7 @@ function readStoredUser(): User | null {
   }
 
   try {
-    return normalizeUser(JSON.parse(stored) as UserResponse);
+    return unwrapUser(JSON.parse(stored) as UserResponse);
   } catch {
     localStorage.removeItem('healthtech_user');
     return null;
@@ -53,17 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
 
   const setSession = useCallback((nextUser: UserResponse, nextToken: string) => {
-    const normalizedUser = normalizeUser(nextUser);
+    const user = unwrapUser(nextUser);
     localStorage.setItem(TOKEN_KEY, nextToken);
-    localStorage.setItem('healthtech_user', JSON.stringify(normalizedUser));
-    setUser(normalizedUser);
+    localStorage.setItem('healthtech_user', JSON.stringify(user));
+    setUser(user);
     setToken(nextToken);
   }, []);
 
   const updateUser = useCallback((nextUser: UserResponse) => {
-    const normalizedUser = normalizeUser(nextUser);
-    localStorage.setItem('healthtech_user', JSON.stringify(normalizedUser));
-    setUser(normalizedUser);
+    const user = unwrapUser(nextUser);
+    localStorage.setItem('healthtech_user', JSON.stringify(user));
+    setUser(user);
   }, []);
 
   const logout = useCallback(async () => {

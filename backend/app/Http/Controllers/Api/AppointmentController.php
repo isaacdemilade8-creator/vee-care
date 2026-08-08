@@ -19,7 +19,7 @@ class AppointmentController extends Controller
         $user = $request->user();
 
         abort_unless(
-            $user->isRole('super_admin', 'admin') || $appointment->patient_id === $user->id || $appointment->doctor_id === $user->id,
+            $user->isRole('hospital_admin') || $appointment->patient_id === $user->id || $appointment->doctor_id === $user->id,
             403
         );
 
@@ -87,9 +87,7 @@ class AppointmentController extends Controller
     {
         $user = $request->user();
         abort_unless(
-            $user->isRole('super_admin')
-                || $appointment->doctor_id === $user->id
-                || $user->isRole('admin'),
+            $user->isRole('hospital_admin') || $appointment->doctor_id === $user->id,
             403
         );
 

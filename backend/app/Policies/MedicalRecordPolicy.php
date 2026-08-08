@@ -9,7 +9,7 @@ class MedicalRecordPolicy
 {
     public function view(User $user, MedicalRecord $medicalRecord): bool
     {
-        if ($user->isRole('super_admin', 'admin') || $medicalRecord->patient_id === $user->id) {
+        if ($user->isRole('hospital_admin') || $medicalRecord->patient_id === $user->id) {
             return true;
         }
 

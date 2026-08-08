@@ -1,5 +1,4 @@
 import type { FormEvent } from 'react';
-import { useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { motion } from 'framer-motion';

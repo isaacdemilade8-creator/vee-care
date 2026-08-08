@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PlatformRole;
 use App\Models\PlatformUser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +16,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => env('PLATFORM_ADMIN_NAME', 'Super Admin'),
                 'password' => Hash::make(env('PLATFORM_ADMIN_PASSWORD', 'password')),
-                'role' => 'super_admin',
+                'role' => PlatformRole::SuperAdmin->value,
             ],
         );
     }

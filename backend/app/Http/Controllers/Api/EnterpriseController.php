@@ -95,7 +95,7 @@ class EnterpriseController extends Controller
     public function staff(Request $request)
     {
         $staff = User::query()
-            ->whereIn('role', ['admin', 'doctor', 'nurse', 'lab_technician', 'pharmacist'])
+            ->whereIn('role', ['hospital_admin', 'doctor', 'nurse', 'lab_technician', 'pharmacist'])
             ->when($request->string('role')->toString(), fn ($query, $role) => $query->where('role', $role))
             ->paginate($request->integer('per_page', 15));
 
@@ -245,8 +245,8 @@ class EnterpriseController extends Controller
         $audit->record($request, 'lab.requested', $test);
 
         User::query()
-            ->whereIn('role', ['lab_technician', 'admin', 'super_admin'])
-            ->when($assignee, fn ($query) => $query->where('id', $assignee->id)->orWhereIn('role', ['admin', 'super_admin']))
+            ->whereIn('role', ['lab_technician', 'hospital_admin'])
+            ->when($assignee, fn ($query) => $query->where('id', $assignee->id)->orWhere('role', 'hospital_admin'))
             ->get()
             ->unique('id')
             ->each(fn (User $user) => $notifications->send(
@@ -567,7 +567,7 @@ class EnterpriseController extends Controller
         }
 
         User::query()
-            ->whereIn('role', ['admin', 'super_admin'])
+            ->whereIn('role', ['hospital_admin'])
             ->get()
             ->each(fn (User $user) => $notifications->send(
                 $user,

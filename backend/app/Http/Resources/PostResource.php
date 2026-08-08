@@ -21,7 +21,7 @@ class PostResource extends JsonResource
                 'id' => $this->author->id,
                 'name' => $this->author->name,
                 'email' => '',
-                'role' => $this->author->role === 'hospital_admin' ? 'admin' : $this->author->role,
+                'role' => $this->author->role,
                 'avatarUrl' => $this->author->avatar_url,
             ]),
             'repost' => null,
@@ -35,7 +35,7 @@ class PostResource extends JsonResource
             'viewer' => [
                 'liked' => false,
                 'saved' => false,
-                'canEdit' => $viewer?->isRole('admin', 'super_admin') ?? false,
+                'canEdit' => $viewer?->isRole('hospital_admin') ?? false,
             ],
             'createdAt' => $this->created_at?->toISOString(),
             'updatedAt' => $this->updated_at?->toISOString(),

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\MedicineOrderController;
 use App\Http\Controllers\Api\PatientCardController;
 use App\Http\Controllers\Api\PharmacyRequestController;
+use App\Http\Controllers\Api\Platform\HospitalApplicationController;
 use App\Http\Controllers\Api\Platform\TenantController as PlatformTenantController;
 use App\Http\Controllers\Api\PlatformAuthController;
 use App\Http\Controllers\Api\PostController;
@@ -34,12 +35,24 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/platform/auth/login', [PlatformAuthController::class, 'login']);
+Route::post('/platform/hospital-applications', [HospitalApplicationController::class, 'store'])
+    ->middleware('throttle:hospital-applications');
+Route::post('/platform/hospital-applications/invitations/{token}/accept', [HospitalApplicationController::class, 'acceptInvitation'])
+    ->middleware('throttle:invitation-accept');
 
 Route::middleware(['auth:platform', 'throttle:120,1'])->group(function (): void {
     Route::get('/platform/me', [PlatformAuthController::class, 'me']);
     Route::post('/platform/auth/logout', [PlatformAuthController::class, 'logout']);
 
-    Route::prefix('platform/tenants')->middleware('role:super_admin')->group(function (): void {
+    Route::prefix('platform/hospital-applications')->middleware('role:platform_super_admin,platform_admin')->group(function (): void {
+        Route::get('/', [HospitalApplicationController::class, 'index']);
+        Route::get('/{application}', [HospitalApplicationController::class, 'show']);
+        Route::patch('/{application}', [HospitalApplicationController::class, 'review']);
+        Route::post('/{application}/approve', [HospitalApplicationController::class, 'approve']);
+        Route::post('/{application}/reject', [HospitalApplicationController::class, 'reject']);
+    });
+
+    Route::prefix('platform/tenants')->middleware('role:platform_super_admin,platform_admin')->group(function (): void {
         Route::get('/', [PlatformTenantController::class, 'index']);
         Route::post('/', [PlatformTenantController::class, 'store']);
         Route::get('/{tenant}', [PlatformTenantController::class, 'show']);
@@ -61,7 +74,7 @@ Route::middleware(['auth:platform', 'throttle:120,1'])->group(function (): void 
 |
 */
 
-Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:auth-register');
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{post}', [PostController::class, 'show']);
@@ -78,25 +91,25 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
     Route::get('/profiles/{user}/reviews', [PractitionerReviewController::class, 'index'])->whereNumber('user');
     Route::post('/profiles/{user}/reviews', [PractitionerReviewController::class, 'store'])->middleware('role:patient')->whereNumber('user');
 
-    Route::post('/posts', [PostController::class, 'store'])->middleware('role:admin,super_admin');
-    Route::patch('/posts/{post}', [PostController::class, 'update'])->middleware('role:admin,super_admin');
-    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware('role:admin,super_admin');
+    Route::post('/posts', [PostController::class, 'store'])->middleware('role:hospital_admin');
+    Route::patch('/posts/{post}', [PostController::class, 'update'])->middleware('role:hospital_admin');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware('role:hospital_admin');
     Route::post('/posts/{post}/comments', [PostController::class, 'comment']);
-    Route::delete('/post-comments/{comment}', [PostController::class, 'destroyComment'])->middleware('role:admin,super_admin');
+    Route::delete('/post-comments/{comment}', [PostController::class, 'destroyComment'])->middleware('role:hospital_admin');
 
     Route::get('/appointments', [AppointmentController::class, 'index'])
-        ->middleware('role:patient,doctor,admin,super_admin');
+        ->middleware('role:patient,doctor,hospital_admin');
     Route::post('/appointments', [AppointmentController::class, 'store'])
         ->middleware('role:patient');
     Route::patch('/appointments/{appointment}', [AppointmentController::class, 'update'])
-        ->middleware('role:doctor,admin,super_admin');
+        ->middleware('role:doctor,hospital_admin');
     Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']);
     Route::get('/medical-records', [MedicalRecordController::class, 'index'])
-        ->middleware('role:patient,doctor,nurse,lab_technician,admin,super_admin');
+        ->middleware('role:patient,doctor,nurse,lab_technician,hospital_admin');
     Route::post('/medical-records', [MedicalRecordController::class, 'store'])
-        ->middleware('role:patient,doctor,nurse,lab_technician,admin');
+        ->middleware('role:patient,doctor,nurse,lab_technician,hospital_admin');
     Route::get('/prescriptions', [PrescriptionController::class, 'index'])
-        ->middleware('role:doctor,patient,admin,super_admin');
+        ->middleware('role:doctor,patient,hospital_admin');
     Route::post('/prescriptions', [PrescriptionController::class, 'store'])
         ->middleware('role:doctor');
 
@@ -114,74 +127,74 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
     Route::post('/patient-cards/request', [PatientCardController::class, 'requestCard'])
         ->middleware('role:patient');
     Route::get('/patient-cards', [PatientCardController::class, 'index'])
-        ->middleware('role:patient,nurse,admin,super_admin');
+        ->middleware('role:patient,nurse,hospital_admin');
     Route::post('/patient-cards', [PatientCardController::class, 'store'])
-        ->middleware('role:admin,super_admin');
+        ->middleware('role:hospital_admin');
     Route::get('/patient-cards/{patientCard}', [PatientCardController::class, 'show']);
     Route::patch('/patient-cards/{patientCard}', [PatientCardController::class, 'update'])
-        ->middleware('role:nurse,admin,super_admin');
+        ->middleware('role:nurse,hospital_admin');
 
     Route::get('/urgent-care-requests', [UrgentCareRequestController::class, 'index'])
-        ->middleware('role:patient,doctor,nurse,admin,super_admin');
+        ->middleware('role:patient,doctor,nurse,hospital_admin');
 
     Route::post('/urgent-care-requests', [UrgentCareRequestController::class, 'store'])
         ->middleware('role:patient');
     Route::patch('/urgent-care-requests/{urgentCareRequest}', [UrgentCareRequestController::class, 'update'])
-        ->middleware('role:doctor,nurse,admin,super_admin');
+        ->middleware('role:doctor,nurse,hospital_admin');
 
     Route::prefix('pharmacy')->group(function (): void {
         Route::get('/medicines', [MedicineOrderController::class, 'medicines'])
-            ->middleware('role:doctor,admin,pharmacist,super_admin');
+            ->middleware('role:doctor,hospital_admin,pharmacist');
         Route::get('/requests', [PharmacyRequestController::class, 'index'])
-            ->middleware('role:doctor,patient,admin,pharmacist,super_admin');
+            ->middleware('role:doctor,patient,hospital_admin,pharmacist');
         Route::post('/requests', [PharmacyRequestController::class, 'store'])
             ->middleware('role:doctor');
         Route::get('/requests/{pharmacyRequest}', [PharmacyRequestController::class, 'show'])
-            ->middleware('role:doctor,patient,admin,pharmacist,super_admin');
+            ->middleware('role:doctor,patient,hospital_admin,pharmacist');
         Route::patch('/requests/items/{pharmacyRequestItem}', [PharmacyRequestController::class, 'updateItem'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
         Route::post('/requests/items/{pharmacyRequestItem}/dispense', [PharmacyRequestController::class, 'dispenseItem'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
         Route::post('/requests/items/{pharmacyRequestItem}/give', [PharmacyRequestController::class, 'giveItem'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
         Route::post('/requests/{pharmacyRequest}/complete', [PharmacyRequestController::class, 'completeReview'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
     });
 
     Route::prefix('enterprise')->group(function (): void {
         Route::get('/dashboard', [EnterpriseController::class, 'dashboard'])
-            ->middleware('role:admin,lab_technician,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,lab_technician,pharmacist');
         Route::get('/patients', [EnterpriseController::class, 'patients'])
-            ->middleware('role:admin,doctor,nurse,super_admin');
+            ->middleware('role:hospital_admin,doctor,nurse');
         Route::get('/staff', [EnterpriseController::class, 'staff'])
-            ->middleware('role:admin,super_admin');
+            ->middleware('role:hospital_admin');
         Route::get('/ehr', [EnterpriseController::class, 'ehr'])
-            ->middleware('role:admin,doctor,nurse,lab_technician,super_admin');
+            ->middleware('role:hospital_admin,doctor,nurse,lab_technician');
         Route::get('/vitals', [EnterpriseController::class, 'vitals'])
-            ->middleware('role:admin,doctor,nurse,super_admin');
+            ->middleware('role:hospital_admin,doctor,nurse');
         Route::get('/lab-tests', [EnterpriseController::class, 'labTests'])
-            ->middleware('role:admin,doctor,nurse,lab_technician,super_admin');
+            ->middleware('role:hospital_admin,doctor,nurse,lab_technician');
         Route::post('/lab-tests', [EnterpriseController::class, 'createLabTest'])
-            ->middleware('role:doctor,nurse,admin,super_admin');
+            ->middleware('role:doctor,nurse,hospital_admin');
         Route::get('/billing', [EnterpriseController::class, 'billing'])
-            ->middleware('role:admin,super_admin');
+            ->middleware('role:hospital_admin');
         Route::get('/pharmacy', [EnterpriseController::class, 'pharmacy'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
         Route::post('/medicines', [EnterpriseController::class, 'createMedicine'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
         Route::patch('/medicines/{medicine}', [EnterpriseController::class, 'updateMedicine'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
         Route::delete('/medicines/{medicine}', [EnterpriseController::class, 'deleteMedicine'])
-            ->middleware('role:admin,pharmacist,super_admin');
+            ->middleware('role:hospital_admin,pharmacist');
         Route::post('/ai/patient-summary', [EnterpriseController::class, 'aiSummary'])
-            ->middleware('role:doctor,admin');
-        Route::post('/ehr/entries', [EnterpriseController::class, 'createEhrEntry'])->middleware('role:doctor,admin');
+            ->middleware('role:doctor,hospital_admin');
+        Route::post('/ehr/entries', [EnterpriseController::class, 'createEhrEntry'])->middleware('role:doctor,hospital_admin');
         Route::post('/vitals', [EnterpriseController::class, 'recordVitals'])->middleware('role:nurse,doctor');
-        Route::patch('/lab-tests/{labTest}', [EnterpriseController::class, 'updateLabResult'])->middleware('role:lab_technician,doctor,admin,super_admin');
-        Route::post('/lab-tests/{labTest}/result', [EnterpriseController::class, 'updateLabResult'])->middleware('role:lab_technician,doctor,admin,super_admin');
-        Route::patch('/medicines/{medicine}/stock', [EnterpriseController::class, 'adjustMedicineStock'])->middleware('role:pharmacist,admin,super_admin');
-        Route::post('/staff', [EnterpriseController::class, 'registerStaff'])->middleware('role:admin');
-        Route::post('/staff/invitations', [EnterpriseController::class, 'registerStaff'])->middleware('role:admin');
+        Route::patch('/lab-tests/{labTest}', [EnterpriseController::class, 'updateLabResult'])->middleware('role:lab_technician,doctor,hospital_admin');
+        Route::post('/lab-tests/{labTest}/result', [EnterpriseController::class, 'updateLabResult'])->middleware('role:lab_technician,doctor,hospital_admin');
+        Route::patch('/medicines/{medicine}/stock', [EnterpriseController::class, 'adjustMedicineStock'])->middleware('role:pharmacist,hospital_admin');
+        Route::post('/staff', [EnterpriseController::class, 'registerStaff'])->middleware('role:hospital_admin');
+        Route::post('/staff/invitations', [EnterpriseController::class, 'registerStaff'])->middleware('role:hospital_admin');
         Route::post('/emergency-requests', [EnterpriseController::class, 'emergencyRequest'])->middleware('role:patient');
     });
 
@@ -190,7 +203,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
     Route::post('/video-consultations/{appointment}/signal', [VideoConsultationController::class, 'signal'])
         ->middleware('role:patient,doctor');
 
-    Route::prefix('admin')->middleware('role:super_admin,admin')->group(function (): void {
+    Route::prefix('admin')->middleware('role:hospital_admin')->group(function (): void {
         Route::get('/analytics', [AdminController::class, 'analytics']);
         Route::get('/users', [AdminController::class, 'users']);
         Route::post('/users', [AdminController::class, 'storeUser']);

@@ -24,15 +24,15 @@ const baseLinks = [
 
 const enterpriseModuleLinks = [
   { to: '/enterprise', label: 'Overview', icon: LayoutDashboard, roles: routeRoles.enterpriseOverview },
-  { to: '/enterprise/modules?module=patients', label: 'Patients', icon: Users, roles: ['admin', 'doctor', 'nurse', 'super_admin'] },
-  { to: '/enterprise/modules?module=ehr', label: 'EHR', icon: FileText, roles: ['admin', 'doctor', 'nurse', 'lab_technician', 'super_admin'] },
+  { to: '/enterprise/modules?module=patients', label: 'Patients', icon: Users, roles: ['hospital_admin', 'doctor', 'nurse'] },
+  { to: '/enterprise/modules?module=ehr', label: 'EHR', icon: FileText, roles: ['hospital_admin', 'doctor', 'nurse', 'lab_technician'] },
   { to: '/nurse/station', label: 'Nurse Station', icon: ClipboardList, roles: routeRoles.nurseStation },
-  { to: '/enterprise/modules?module=staff', label: 'Staff', icon: UserRound, roles: ['admin', 'super_admin'] },
+  { to: '/enterprise/modules?module=staff', label: 'Staff', icon: UserRound, roles: ['hospital_admin'] },
   { to: '/enterprise/modules?module=pharmacy', label: 'Pharmacy', icon: PackageCheck, roles: routeRoles.pharmacy },
   { to: '/pharmacy/inventory', label: 'Drug Inventory', icon: Boxes, roles: routeRoles.pharmacy },
   { to: '/pharmacy/medicines/new', label: 'Add Medicine', icon: PackagePlus, roles: routeRoles.pharmacy },
   { to: '/laboratory', label: 'Laboratory', icon: FlaskConical, roles: routeRoles.laboratory },
-  { to: '/enterprise/modules?module=ai', label: 'AI Assistant', icon: Bot, roles: ['admin', 'doctor'] },
+  { to: '/enterprise/modules?module=ai', label: 'AI Assistant', icon: Bot, roles: ['hospital_admin', 'doctor'] },
 ] as const;
 
 export function DashboardLayout() {

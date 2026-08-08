@@ -9,7 +9,7 @@ export function ProtectedRoute({ roles }: { roles?: readonly Role[] }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (roles && user && !roles.includes(user.role)) {
+  if (roles && user && !(roles as readonly string[]).includes(user.role)) {
     return <Navigate to="/dashboard" replace />;
   }
 

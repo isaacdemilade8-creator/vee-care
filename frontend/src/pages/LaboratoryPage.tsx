@@ -20,7 +20,7 @@ export function LaboratoryPage() {
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<LabTest | null>(null);
-  const canRequest = ['doctor', 'nurse', 'admin', 'super_admin'].includes(user?.role ?? '');
+  const canRequest = ['doctor', 'nurse', 'hospital_admin'].includes(user?.role ?? '');
   const tests = useEnterpriseLabTests(status ? { status } : {});
   const patients = useEnterprisePatients(search, canRequest);
   const testRows = tests.data?.data ?? [];

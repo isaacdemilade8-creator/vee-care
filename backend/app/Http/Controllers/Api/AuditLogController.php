@@ -15,7 +15,7 @@ class AuditLogController extends Controller
         $user = $request->user();
         $query = AuditLog::query()->with('user')->latest();
 
-        if (! $user->isRole('super_admin', 'admin')) {
+        if (! $user->isRole('hospital_admin')) {
             $query->where('user_id', $user->id);
         } elseif ($request->integer('user_id')) {
             $query->where('user_id', $request->integer('user_id'));

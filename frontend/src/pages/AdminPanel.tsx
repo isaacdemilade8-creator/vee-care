@@ -19,17 +19,13 @@ import { formValues } from '../utils/form';
 import { excerpt, formatDate } from '../utils/format';
 import styles from './TablePage.module.scss';
 
-const platformRoles = [
+const managedRoles = [
   { label: 'Patient', value: 'patient' },
   { label: 'Doctor', value: 'doctor' },
   { label: 'Nurse', value: 'nurse' },
   { label: 'Lab Technician', value: 'lab_technician' },
   { label: 'Pharmacist', value: 'pharmacist' },
-  { label: 'Admin', value: 'admin' },
-  { label: 'Super Admin', value: 'super_admin' },
 ];
-
-const adminManagedRoles = platformRoles.filter((role) => !['super_admin', 'admin'].includes(role.value));
 
 const pageMotion: Variants = {
   hidden: { opacity: 0 },
@@ -56,11 +52,9 @@ export function AdminPanel() {
   const [preview, setPreview] = useState('');
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
-  const isSuperAdmin = user?.role === 'super_admin';
   const analytics = useAdminAnalytics();
   const users = useAdminUsers(search ? { search } : undefined);
   const posts = usePosts({ per_page: '50' });
-  const roles = isSuperAdmin ? platformRoles : adminManagedRoles;
   const visiblePosts = (posts.data?.data ?? []).filter((post) => {
     const query = postSearch.trim().toLowerCase();
     return !query || `${post.title ?? ''} ${post.body} ${post.author.name}`.toLowerCase().includes(query);
@@ -204,8 +198,8 @@ export function AdminPanel() {
     <motion.div className={styles.page} variants={pageMotion} initial="hidden" animate="show">
       <motion.div className={styles.header} variants={itemMotion}>
         <div>
-          <span>{isSuperAdmin ? 'Platform governance' : 'User operations'}</span>
-          <h2>{isSuperAdmin ? 'Super Admin Control Center' : 'Admin Console'}</h2>
+          <span>Hospital operations</span>
+          <h2>Admin Console</h2>
         </div>
         <div>
           <input
@@ -243,7 +237,7 @@ export function AdminPanel() {
           <div className={styles.sectionTitle}>
             <span>Account setup</span>
             <h3>Register User</h3>
-            <p>Create patient, clinical, support, and admin accounts on the shared platform.</p>
+            <p>Create patient, clinical, and staff accounts within this hospital.</p>
           </div>
           <form className={styles.form} onSubmit={submitUser} noValidate>
             <div className={styles.formGroup}>
@@ -287,7 +281,7 @@ export function AdminPanel() {
                   }}
                   error={errors.role}
                 >
-                  {roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
+                  {managedRoles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
                 </SelectField>
                 <SelectField
                   label="Specialty / Department"
@@ -319,8 +313,8 @@ export function AdminPanel() {
       <Card className={styles.userPanel}>
         <div className={styles.sectionTitle}>
           <span>Access control</span>
-          <h3>{isSuperAdmin ? 'Platform Users' : 'Managed Users'}</h3>
-          <p>{isSuperAdmin ? 'Super admins can manage every account.' : 'Admins can manage non-admin accounts across the shared platform.'}</p>
+          <h3>Hospital Staff</h3>
+          <p>Hospital administrators can manage patient and staff accounts within this hospital.</p>
         </div>
         {users.isLoading ? <SkeletonRows /> : (
           <div className={styles.table}>

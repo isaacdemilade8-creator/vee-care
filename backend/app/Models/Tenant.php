@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TenantStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
@@ -36,7 +37,22 @@ class Tenant extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->status === TenantStatus::Active->value;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === TenantStatus::Suspended->value;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === TenantStatus::Rejected->value;
+    }
+
+    public function isOperational(): bool
+    {
+        return $this->isActive();
     }
 
     public static function generateSlug(string $name): string

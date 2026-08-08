@@ -243,10 +243,12 @@ class TenantIsolationTest extends TestCase
         $this->assertSame('Hospital One Tenant', Organization::query()->first()?->name);
         $this->assertSame(1, Branch::query()->count());
 
-        $admin = User::query()->where('role', 'admin')->first();
+        $admin = User::query()->where('role', 'hospital_admin')->first();
         $this->assertNotNull($admin);
         $this->assertSame('admin@hospitalone.vee-care.test', $admin->email);
         $this->assertSame(1, $admin->organization_id);
+        $this->assertSame(0, User::query()->where('role', 'admin')->count());
+        $this->assertSame(0, User::query()->where('role', 'super_admin')->count());
     }
 
     /**

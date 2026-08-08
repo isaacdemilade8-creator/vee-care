@@ -2,11 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Branch;
-use App\Models\Organization;
+use App\Enums\TenantStatus;
 use App\Models\Tenant;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Database\Seeders\TenantSeeder;
 use RuntimeException;
 
 class TenantProvisioner
@@ -30,6 +28,10 @@ class TenantProvisioner
         $password = $options['password'] ?? null;
 
         $slug = $options['slug'] ?? Tenant::generateSlug($name);
+        $slug = strtolower(trim($slug));
+
+        $this->assertUsableSlug($slug);
+
         $databaseName = $options['database_name'] ?? $this->buildDatabaseName($slug);
         $type = $options['type'] ?? 'hospital';
         $plan = $options['plan'] ?? 'starter';
@@ -41,7 +43,7 @@ class TenantProvisioner
             'slug' => $slug,
             'type' => $type,
             'plan' => $plan,
-            'status' => 'provisioning',
+            'status' => TenantStatus::Provisioning->value,
             'currency' => $currency,
             'database_name' => $databaseName,
             'database_host' => $options['database_host'] ?? null,
@@ -54,17 +56,12 @@ class TenantProvisioner
         try {
             $this->databases->createDatabase($tenant);
             $this->databases->migrate($tenant);
-            $this->seedOrganization($tenant, $slug, $type, $plan, $currency, $settings);
-
-            if ($email && $password) {
-                $this->seedAdministrator($tenant, $email, $password);
-            }
-
+            app(TenantSeeder::class)->run($tenant, $email, $password);
             $this->registerPrimaryDomain($tenant, $slug);
 
-            $tenant->update(['status' => 'active']);
+            $tenant->update(['status' => TenantStatus::Active->value]);
         } catch (\Throwable $e) {
-            $tenant->update(['status' => 'failed']);
+            $tenant->update(['status' => TenantStatus::Failed->value]);
 
             throw new RuntimeException("Tenant provisioning failed: {$e->getMessage()}", 0, $e);
         } finally {
@@ -75,44 +72,13 @@ class TenantProvisioner
     }
 
     /**
-     * Seed the default organization + main branch inside the tenant database.
+     * Reject slugs that collide with the control plane's own hostnames.
      */
-    protected function seedOrganization(Tenant $tenant, string $slug, string $type, string $plan, string $currency, array $settings): void
+    protected function assertUsableSlug(string $slug): void
     {
-        $organization = Organization::query()->create([
-            'name' => $tenant->name,
-            'slug' => $slug,
-            'type' => $type,
-            'plan' => $plan,
-            'status' => 'active',
-            'currency' => $currency,
-            'settings' => $settings,
-        ]);
-
-        Branch::query()->create([
-            'organization_id' => $organization->id,
-            'name' => 'Main Branch',
-        ]);
-    }
-
-    /**
-     * Seed the initial hospital administrator inside the tenant database.
-     */
-    protected function seedAdministrator(Tenant $tenant, string $email, string $password): User
-    {
-        $organization = Organization::query()->first();
-        $branch = Branch::query()->where('organization_id', $organization?->id)->first();
-
-        $user = User::query()->create([
-            'organization_id' => $organization?->id,
-            'branch_id' => $branch?->id,
-            'name' => $tenant->name.' Administrator',
-            'email' => $email,
-            'password' => Hash::make($password),
-            'role' => 'admin',
-        ]);
-
-        return $user;
+        if (in_array($slug, config('tenancy.platform_subdomains', []), true)) {
+            throw new RuntimeException("Slug [{$slug}] is a reserved platform subdomain.");
+        }
     }
 
     /**

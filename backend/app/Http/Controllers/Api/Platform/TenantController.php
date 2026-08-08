@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Api\Platform;
 
+use App\Enums\TenantStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TenantResource;
 use App\Models\Tenant;
 use App\Models\TenantDomain;
+use App\Rules\AvailableHospitalSubdomain;
 use App\Services\TenantDatabaseManager;
 use App\Services\TenantProvisioner;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\Rule;
 
 class TenantController extends Controller
@@ -48,7 +49,7 @@ class TenantController extends Controller
             'type' => ['sometimes', 'in:clinic,hospital,lab,pharmacy'],
             'plan' => ['sometimes', 'in:starter,growth,enterprise'],
             'currency' => ['sometimes', 'string', 'size:3'],
-            'subdomain' => ['sometimes', 'nullable', 'string', 'max:63', 'regex:/^[a-z0-9][a-z0-9-]*[a-z0-9]$/'],
+            'subdomain' => ['sometimes', 'nullable', new AvailableHospitalSubdomain],
         ]);
 
         if (array_key_exists('email', $data) !== array_key_exists('password', $data)) {
@@ -79,7 +80,7 @@ class TenantController extends Controller
             'type' => ['sometimes', 'in:clinic,hospital,lab,pharmacy'],
             'plan' => ['sometimes', 'in:starter,growth,enterprise'],
             'currency' => ['sometimes', 'string', 'size:3'],
-            'status' => ['sometimes', Rule::in(['pending', 'active', 'suspended', 'failed'])],
+            'status' => ['sometimes', Rule::in(TenantStatus::values())],
             'settings' => ['sometimes', 'array'],
         ]);
 
@@ -117,13 +118,13 @@ class TenantController extends Controller
 
     public function migrate(Tenant $tenant): JsonResponse
     {
-        $tenant->update(['status' => 'provisioning']);
+        $tenant->update(['status' => TenantStatus::Provisioning->value]);
 
         try {
             $this->databases->migrate($tenant);
-            $tenant->update(['status' => 'active']);
+            $tenant->update(['status' => TenantStatus::Active->value]);
         } catch (\Throwable $e) {
-            $tenant->update(['status' => 'failed']);
+            $tenant->update(['status' => TenantStatus::Failed->value]);
 
             return response()->json(['message' => 'Migration failed: '.$e->getMessage()], 500);
         }

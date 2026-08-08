@@ -8,8 +8,7 @@ import styles from './ProfilesPage.module.scss';
 
 const roleOptions = [
   { label: 'All roles', value: '' },
-  { label: 'Super Admin', value: 'super_admin' },
-  { label: 'Admin', value: 'admin' },
+  { label: 'Hospital Admin', value: 'hospital_admin' },
   { label: 'Doctor', value: 'doctor' },
   { label: 'Nurse', value: 'nurse' },
   { label: 'Patient', value: 'patient' },

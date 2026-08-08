@@ -69,7 +69,7 @@ class MedicineOrderController extends Controller
         ]);
 
         User::query()
-            ->whereIn('role', ['admin', 'pharmacist', 'super_admin'])
+            ->whereIn('role', ['hospital_admin', 'pharmacist'])
             ->get()
             ->each(fn (User $user) => $notifications->send(
                 $user,

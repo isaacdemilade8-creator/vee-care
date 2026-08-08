@@ -26,8 +26,8 @@ class ChatController extends Controller
         } elseif ($user->isRole('doctor')) {
             $query->where('role', 'patient')
                 ->whereHas('patientAppointments', fn ($q) => $q->where('doctor_id', $user->id));
-        } elseif ($user->isRole('admin')) {
-            $query->whereNot('role', 'super_admin');
+        } elseif ($user->isRole('hospital_admin')) {
+            $query->whereNot('role', 'hospital_admin');
         }
 
         return UserResource::collection($query->orderBy('name')->paginate(25));
@@ -87,7 +87,7 @@ class ChatController extends Controller
     {
         abort_if($sender->id === $receiver->id, 422, 'You cannot message yourself.');
 
-        if ($sender->isRole('super_admin', 'admin') || $receiver->isRole('super_admin', 'admin')) {
+        if ($sender->isRole('hospital_admin') || $receiver->isRole('hospital_admin')) {
             return;
         }
 

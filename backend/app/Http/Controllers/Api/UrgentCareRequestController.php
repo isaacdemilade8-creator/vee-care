@@ -72,7 +72,7 @@ class UrgentCareRequestController extends Controller
     public function update(Request $request, UrgentCareRequest $urgentCareRequest, NotificationService $notifications, AuditService $audit): UrgentCareRequestResource
     {
         $user = $request->user();
-        abort_unless($user->isRole('super_admin', 'admin', 'doctor', 'nurse'), 403);
+        abort_unless($user->isRole('hospital_admin', 'doctor', 'nurse'), 403);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(['queued', 'assigned', 'in_progress', 'resolved', 'cancelled'])],
@@ -140,7 +140,7 @@ class UrgentCareRequestController extends Controller
     private function notifyCareTeam(UrgentCareRequest $triage, NotificationService $notifications): void
     {
         $recipientQuery = User::query()
-            ->whereIn('role', ['admin', 'doctor', 'nurse']);
+            ->whereIn('role', ['hospital_admin', 'doctor', 'nurse']);
 
         $recipients = $recipientQuery
             ->limit($triage->severity === 'critical' ? 12 : 6)

@@ -102,7 +102,7 @@ class PharmacyRequestController extends Controller
         $audit->record($request, 'pharmacy_request.created', $request->user());
 
         User::query()
-            ->whereIn('role', ['admin', 'pharmacist', 'super_admin'])
+            ->whereIn('role', ['hospital_admin', 'pharmacist'])
             ->get()
             ->each(fn (User $user) => $notifications->send(
                 $user,
@@ -120,7 +120,7 @@ class PharmacyRequestController extends Controller
 
     public function updateItem(Request $request, PharmacyRequestItem $pharmacyRequestItem, AuditService $audit): JsonResponse
     {
-        abort_unless($request->user()->isRole('pharmacist', 'admin', 'super_admin'), 403);
+        abort_unless($request->user()->isRole('pharmacist', 'hospital_admin'), 403);
 
         $pharmacyRequest = $pharmacyRequestItem->pharmacyRequest;
         abort_if($pharmacyRequest->status === 'reviewed', 422, 'This request has already been reviewed.');
@@ -146,7 +146,7 @@ class PharmacyRequestController extends Controller
 
     public function completeReview(Request $request, PharmacyRequest $pharmacyRequest, AuditService $audit, NotificationService $notifications): JsonResponse
     {
-        abort_unless($request->user()->isRole('pharmacist', 'admin', 'super_admin'), 403);
+        abort_unless($request->user()->isRole('pharmacist', 'hospital_admin'), 403);
         abort_if($pharmacyRequest->status === 'reviewed', 422, 'This request has already been reviewed.');
 
         $pharmacyRequest->load('items');
@@ -215,7 +215,7 @@ class PharmacyRequestController extends Controller
 
     public function dispenseItem(Request $request, PharmacyRequestItem $pharmacyRequestItem, AuditService $audit, NotificationService $notifications): JsonResponse
     {
-        abort_unless($request->user()->isRole('pharmacist', 'admin', 'super_admin'), 403);
+        abort_unless($request->user()->isRole('pharmacist', 'hospital_admin'), 403);
 
         $pharmacyRequest = $pharmacyRequestItem->pharmacyRequest;
         abort_if($pharmacyRequest->status !== 'reviewed', 422, 'Pharmacy request must be reviewed first.');
@@ -248,7 +248,7 @@ class PharmacyRequestController extends Controller
 
     public function giveItem(Request $request, PharmacyRequestItem $pharmacyRequestItem, AuditService $audit, NotificationService $notifications): JsonResponse
     {
-        abort_unless($request->user()->isRole('pharmacist', 'admin', 'super_admin'), 403);
+        abort_unless($request->user()->isRole('pharmacist', 'hospital_admin'), 403);
 
         $pharmacyRequest = $pharmacyRequestItem->pharmacyRequest;
         abort_if($pharmacyRequest->status !== 'reviewed', 422, 'Pharmacy request must be reviewed first.');
@@ -284,7 +284,7 @@ class PharmacyRequestController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isRole('admin', 'pharmacist', 'super_admin')) {
+        if ($user->isRole('hospital_admin', 'pharmacist')) {
             return;
         }
 

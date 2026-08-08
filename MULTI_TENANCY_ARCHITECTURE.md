@@ -56,7 +56,30 @@ TENANT_DB_PREFIX=vee_care_tenant_
 # Set to "sqlite" for local dev/tests: databases become files in TENANT_DB_PATH.
 TENANT_DB_DRIVER=
 TENANT_DB_PATH=database/tenants
+# Hospital-admin invitation lifetime in days (default 7).
+TENANT_INVITATION_EXPIRY_DAYS=7
 ```
+
+### Invitation delivery (mail)
+
+Invitation emails use the standard Laravel mail configuration and are queued on
+the configured queue (`QUEUE_CONNECTION`; a worker must be running in
+production, or set `QUEUE_CONNECTION=sync` in dev):
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=...
+MAIL_PORT=587
+MAIL_USERNAME=...
+MAIL_PASSWORD=...
+MAIL_FROM_ADDRESS="onboarding@vee-care.test"
+MAIL_FROM_NAME="Vee-Care"
+```
+
+Sending is **best-effort**: if the mailer fails, approval still completes and
+the failure is logged. The raw invitation token is also returned to the
+approving platform administrator once, so onboarding is never blocked on a mail
+outage.
 
 ## Hostname resolution
 
@@ -109,6 +132,11 @@ Served on the platform domain, authenticated with the `platform` guard against
 | `POST /api/platform/auth/login`        | Platform admin login        |
 | `GET /api/platform/me`                 | Current platform user       |
 | `POST /api/platform/auth/logout`       | Logout                      |
+| `POST /api/platform/hospital-applications` | Public hospital application |
+| `GET /api/platform/hospital-applications` | List applications        |
+| `PATCH /api/platform/hospital-applications/{a}` | Mark under review     |
+| `POST /api/platform/hospital-applications/{a}/approve` | Provision tenant |
+| `POST /api/platform/hospital-applications/{a}/reject` | Reject application |
 | `GET/POST /api/platform/tenants`       | List / create tenants       |
 | `GET/PATCH /api/platform/tenants/{t}`  | Show / update a tenant      |
 | `POST /api/platform/tenants/{t}/domains` | Add a custom domain       |
@@ -138,6 +166,186 @@ unchanged and now run inside the resolved tenant database.
   to every tenant database and tracked in each tenant's own `migrations` table.
   MySQL-specific statements are guarded with `DB::getDriverName() === 'mysql'`.
 
+## Core-domain migration (Milestone 2)
+
+The healthcare domain — users, patient profiles, practitioners/doctors/staff,
+appointments — already lived in tenant databases once Milestone 1 made the
+resolved tenant connection the default. Milestone 2 hardens that boundary and
+adds RBAC and seeding:
+
+- **RBAC** is string roles on `users.role`, sourced from `App\Enums\Role`
+  (single source of truth). Tenant roles: `hospital_admin`, `doctor`, `nurse`,
+  `patient`, `lab_technician`, `pharmacist`. `Role::assignableByAdmin()` limits
+  which roles a hospital admin may create; `Role::staff()` covers clinical
+  staff for analytics.
+- **Tenant seeding** (`database/seeders/TenantSeeder.php`) is invoked by
+  `TenantProvisioner::provision()` and seeds one organization, one main branch,
+  and an optional admin inside each tenant database.
+- **`organization_id` is retained** as a nullable compatibility column,
+  auto-filled to the tenant's single seeded organization
+  (`App\Models\Concerns\BelongsToOrganization`). It is a data-consistency
+  convenience only: the resolved tenant database is the authoritative
+  boundary. Client-supplied `organization_id`/`branch_id` in registration and
+  appointment payloads are ignored (validated fields only, no `forceFill`).
+- **`UserResource` is tenant/control aware.** `canReview`/`isFollowing` (which
+  query tenant-only tables such as `user_follows`) are skipped for
+  control-plane `PlatformUser` resources so platform responses never touch
+  tenant tables.
+
+## Platform administration & hospital onboarding (Milestones 2.5–2.6)
+
+Milestone 2.5 completes the split between platform and tenant administration
+and adds the hospital application → approval → provisioning workflow. Milestone
+2.6 hardens that flow for production: secure hospital-admin invitations replace
+returned passwords, public registration is rate-limited, onboarding is audited,
+and the frontend role model matches the platform/tenant split.
+
+### Role split
+
+| Plane | Connection | Roles | Enum |
+|-------|------------|-------|------|
+| Platform (control plane) | `control` | `platform_super_admin`, `platform_admin` | `App\Enums\PlatformRole` |
+| Tenant (hospital plane) | resolved tenant DB | `hospital_admin`, `doctor`, `nurse`, `patient`, `lab_technician`, `pharmacist` | `App\Enums\Role` |
+
+- Tenant databases **top out at `hospital_admin`**. The legacy `super_admin` /
+  `admin` tenant values are consolidated to `hospital_admin` by the
+  `introduce_hospital_admin_role` tenant migration. Platform role values
+  (`platform_super_admin` / `platform_admin`) are never valid inside a tenant
+  database: they are not members of `App\Enums\Role`, so tenant `admin`
+  validation and role middleware reject them (422 on create, 422 on update,
+  403 on route access).
+- Platform roles exist only on control-plane users (`PlatformUser`). The
+  `update_platform_user_roles` migration widens the control `users.role` column
+  to `VARCHAR(50)` and rewrites `super_admin` → `platform_super_admin`,
+  `admin` → `platform_admin`.
+- Tenant routes use `role:hospital_admin`; platform routes use
+  `role:platform_super_admin,platform_admin` behind the `auth:platform` guard.
+  The two role spaces never collide because each user's role string is only
+  ever evaluated against the plane it belongs to.
+
+### Application lifecycle
+
+```
+  public POST /api/platform/hospital-applications        (pending)
+         ├─ platform review   PATCH /{application}       (under_review)
+         ├─ platform approve  POST /{application}/approve -> provisions tenant
+         │                       ├─ hospital admin account created (no password)
+         │                       └─ single-use invitation emailed to applicant
+         └─ platform reject   POST /{application}/reject  -> no tenant created
+```
+
+- **Public submission** (`HospitalApplicationController@store`) is unauthenticated
+  and only accepts hospital/contact details and a subdomain. It never accepts
+  roles, passwords or database credentials, and it never creates a tenant.
+- **Subdomain validation** (`App\Rules\AvailableHospitalSubdomain`) enforces a
+  DNS-label format, rejects reserved platform subdomains (`api`, `admin`,
+  `www`), and rejects slugs already claimed by a tenant or a non-rejected
+  application. Rejecting an application retires its slug
+  (`<slug>-rejected-<id>`) so the subdomain becomes available again.
+- **Approval** (`HospitalApplicationController@approve`) provisions the tenant
+  through the existing `App\Services\TenantProvisioner`, links it via
+  `hospital_applications.tenant_id`, and issues a single-use invitation to the
+  applicant's contact email. **No password is ever generated or returned.**
+  The tenant is provisioned with a throwaway (never-revealed) password and the
+  hospital administrator sets their own password by redeeming the invitation.
+- **Tenant status** is an enum (`App\Enums\TenantStatus`):
+  `pending`, `provisioning`, `active`, `suspended`, `rejected`, `failed`.
+  `ResolveTenant` aborts with `403` for any non-active tenant, so suspended or
+  rejected tenants are blocked at the tenant boundary.
+
+### Secure hospital-admin invitation
+
+`App\Models\HospitalAdminInvitation` is a single-use, expiring invitation
+issued on the control plane when an application is approved:
+
+- `POST /api/platform/hospital-applications/invitations/{token}/accept` is
+  **public** (no platform login) and rate-limited. The applicant submits a new
+  password (8+ characters, confirmed); the hospital admin's password is set
+  inside the resolved tenant database and the invitation is marked used.
+- The token is 64 random bytes (`Str::random(64)`); only its SHA-256 digest is
+  stored (`hospital_admin_invitations.token_hash`). A database leak never
+  exposes a usable token, and the raw token is never logged.
+- The token is returned to the approver **once** in the approval response and
+  emailed to the applicant's contact address via
+  `App\Mail\HospitalAdminInvitation` (best-effort: a mail failure is logged and
+  never fails provisioning). No password ever appears in an email, a URL, a log
+  line, or an API response.
+- **Expiry** defaults to 7 days (`TENANT_INVITATION_EXPIRY_DAYS`). Expired,
+  used, or unknown tokens are rejected with a generic 422 — implementation
+  details are never exposed.
+- Invitations are scoped to their `application_id` / `tenant_id`: redemption
+  always writes to the tenant the invitation was issued for, so a token can
+  never activate an account in another hospital.
+
+### Public registration rate limiting
+
+Dedicated per-client limiters live in `App\Providers\AppServiceProvider` and are
+applied as named middleware in `routes/api.php` — the platform-admin throttle is
+never reused:
+
+| Route | Limiter | Limit |
+|-------|---------|-------|
+| `POST /api/platform/hospital-applications` | `hospital-applications` | 5/min per IP |
+| `POST .../invitations/{token}/accept` | `invitation-accept` | 10/min per IP |
+| `POST /api/auth/register` (tenant) | `auth-register` | 10/min per IP |
+
+Duplicate submissions are also blocked at the validation layer (a slug already
+claimed by a pending/approved application or a tenant is rejected), so the rate
+limit is defence-in-depth, not the only protection.
+
+### Platform audit events
+
+`App\Models\PlatformAuditLog` records control-plane onboarding events. Writes go
+to the control database only and never contain passwords, invitation tokens or
+database credentials:
+
+| Event | Actor |
+|-------|-------|
+| `hospital_application.submitted` | none (public) |
+| `hospital_application.reviewed` | platform user |
+| `hospital_application.approved` | platform user (also records `tenant_id`) |
+| `hospital_application.rejected` | platform user |
+| `hospital_application.invitation_accepted` | none (public) |
+
+Each record captures the event type, the platform actor (`platform_user_id`),
+the affected application/tenant ids, an IP address, a user agent and a timestamp,
+plus any relevant metadata (slug, email, rejection reason).
+
+### Testing onboarding locally
+
+Run the control-plane migrations, then exercise the lifecycle end-to-end:
+
+```bash
+php artisan migrate                                   # control plane (MySQL)
+php artisan optimize:clear
+
+# 1. Submit a public application
+curl -X POST http://vee-care.test/api/platform/hospital-applications \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"hospital_name":"Mercy Hospital","slug":"mercy-hospital",
+       "contact_name":"Jane Doe","contact_email":"jane@example.com"}'
+
+# 2. Log in as a platform administrator and approve it
+curl -X POST http://vee-care.test/api/platform/auth/login \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"email":"platform@vee-care.test","password":"..."}'
+# -> use the returned token to POST .../hospital-applications/1/approve
+
+# 3. The response (and the queued invitation email) contain the accept URL
+curl -X POST 'http://vee-care.test/api/platform/hospital-applications/invitations/<TOKEN>/accept' \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"password":"a-strong-password","password_confirmation":"a-strong-password"}'
+
+# 4. The hospital admin can now log in on the tenant host
+curl -X POST http://mercy-hospital.vee-care.test/api/auth/login \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"email":"jane@example.com","password":"a-strong-password"}'
+```
+
+With `MAIL_MAILER=log` the invitation is written to the log file; with a real
+SMTP mailer it is queued to the applicant's inbox. Every step is recorded in
+`platform_audit_logs`.
+
 ## Isolation tests
 
 `tests/Feature/TenantIsolationTest.php` (runs with `TENANT_DB_DRIVER=sqlite`,
@@ -151,8 +359,63 @@ tenant databases as files under `backend/database/tenants/`) verifies:
 - provisioning seeds org + branch + admin inside the tenant database
 - credentials are encrypted at rest in the control database
 
+`tests/Feature/CoreDomainIsolationTest.php` covers the core-domain boundary:
+
+- patients exist only in the tenant DB they were registered on; the same email
+  may exist independently in multiple tenants
+- an id that exists in only one tenant's DB is 404 from every other tenant;
+  colliding auto-increment ids resolve to the tenant-local record
+- practitioners (doctors) are tenant-local; `/api/doctors` never lists another
+  tenant's staff
+- appointments are tenant-local; an appointment may never reference a doctor
+  from another tenant (validated with `exists:users,id` → 422, no row created)
+- client-supplied `organization_id`/`branch_id` cannot switch tenant context
+- hospital admins cannot escalate to `super_admin`/`admin` — those values are
+  not tenant roles at all, so tenant validation rejects them
+- platform (`PlatformUser`) and tenant credentials are fully isolated across
+  the control/tenant boundary
+- cached auth guards do not leak a user across tenant contexts
+
+`tests/Feature/HospitalOnboardingTest.php` covers the onboarding lifecycle:
+
+- public submissions create a `pending` application and never a tenant; roles,
+  passwords and database credentials in the payload are ignored
+- duplicate, reserved (`api`/`admin`/`www`) and malformed subdomains are
+  rejected; case is normalized to lowercase
+- rejection retires the slug (available again) and creates no tenant
+- review marks an application `under_review`
+- approval provisions an active tenant, seeds exactly one `hospital_admin`
+  (the applicant's contact email), returns a single-use invitation **instead of
+  a password**, and leaves zero `super_admin`/`admin`/platform roles in the
+  tenant DB
+- a failed provisioning never leaves a half-created tenant: the application
+  stays `pending`, the tenant record is rolled back, and no invitation exists
+- terminal applications cannot be approved/reviewed/rejected twice
+- `platform_admin` and `platform_super_admin` can manage applications; a
+  control user without a platform role — including a `hospital_admin` — gets
+  403; tenant tokens never authenticate on the platform host (401)
+- suspended tenants return 403 at the tenant boundary
+- the whole lifecycle (submitted → approved → invitation accepted → rejected)
+  is recorded in `platform_audit_logs`
+- public onboarding endpoints are rate-limited (429 past the per-client limit)
+
+`tests/Feature/HospitalAdminInvitationTest.php` covers the invitation lifecycle:
+
+- a valid invitation sets the hospital admin's password, marks the invitation
+  used, and lets the admin log in on the tenant host
+- used, expired and unknown tokens are rejected; a token can never be redeemed
+  twice
+- invitations are tenant-scoped: redeeming Hospital One's token never touches
+  Hospital Two's administrator
+- approval dispatches the invitation email to the applicant's contact address
+- the response never contains a raw token hash, password, or plaintext
+  credentials
+
 ```bash
 vendor/bin/phpunit --filter TenantIsolationTest
+vendor/bin/phpunit --filter CoreDomainIsolationTest
+vendor/bin/phpunit --filter HospitalOnboardingTest
+vendor/bin/phpunit --filter HospitalAdminInvitationTest
 ```
 
 ## Security notes
@@ -165,3 +428,11 @@ vendor/bin/phpunit --filter TenantIsolationTest
   tenant planes have separate auth guards and providers.
 - Auth guards are forgotten whenever the tenant/platform context switches so a
   resolved user cannot leak across tenants in long-running processes.
+- Hospital-admin invitation tokens are single-use, expiring, stored only as a
+  SHA-256 digest, and never logged or exposed through email bodies (only their
+  acceptance URL is transmitted). Passwords are never generated by the platform,
+  never returned by the API, and never written to logs.
+- Public onboarding and invitation endpoints carry dedicated per-client rate
+  limits as defence-in-depth on top of validation-level duplicate protection.
+- Platform audit events never include passwords, invitation tokens or database
+  credentials; each approved application records which platform user approved it.

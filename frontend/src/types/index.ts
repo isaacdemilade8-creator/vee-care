@@ -1,11 +1,12 @@
-export type Role = 'super_admin' | 'admin' | 'doctor' | 'nurse' | 'patient' | 'lab_technician' | 'pharmacist';
+export type Role = 'hospital_admin' | 'doctor' | 'nurse' | 'patient' | 'lab_technician' | 'pharmacist';
+export type PlatformRole = 'platform_super_admin' | 'platform_admin';
 export type AppointmentStatus = 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled';
 
 export interface User {
   id: number;
   name: string;
   email: string;
-  role: Role;
+  role: Role | PlatformRole;
   organizationId?: number | null;
   branchId?: number | null;
   specialty?: string | null;

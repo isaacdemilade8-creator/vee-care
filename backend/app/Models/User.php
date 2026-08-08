@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Enums\PlatformRole;
+use App\Enums\Role;
 use App\Models\PatientCard;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -103,10 +105,24 @@ class User extends Authenticatable
         return $this->hasMany(PractitionerReview::class, 'patient_id');
     }
 
-    public function isRole(string ...$roles): bool
+    /**
+     * Role check against the raw role string.
+     *
+     * Accepts tenant roles (App\Enums\Role) as well as platform roles
+     * (App\Enums\PlatformRole). PlatformUser inherits this method; the two
+     * role spaces never collide because a platform user's role string is a
+     * platform value and a tenant user's role string is a tenant value.
+     */
+    public function isRole(Role|PlatformRole|string ...$roles): bool
     {
-        $role = $this->role === 'hospital_admin' ? 'admin' : $this->role;
+        foreach ($roles as $candidate) {
+            $value = $candidate instanceof \BackedEnum ? $candidate->value : $candidate;
 
-        return in_array($role, $roles, true);
+            if ($this->role === $value) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

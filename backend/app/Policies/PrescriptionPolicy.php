@@ -9,7 +9,7 @@ class PrescriptionPolicy
 {
     public function view(User $user, Prescription $prescription): bool
     {
-        return $user->isRole('super_admin', 'admin')
+        return $user->isRole('hospital_admin')
             || $prescription->patient_id === $user->id
             || $prescription->doctor_id === $user->id;
     }

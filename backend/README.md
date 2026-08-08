@@ -1,58 +1,155 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Vee-Care Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel API for Vee-Care, a multi-tenant healthcare platform using
+**database-per-tenant** isolation. Every hospital (tenant) gets its own
+database; a small **control database** holds the tenant registry, domain
+mapping, and platform administrators.
 
-## About Laravel
+> See [`MULTI_TENANCY_ARCHITECTURE.md`](../MULTI_TENANCY_ARCHITECTURE.md) for
+> the full architecture, provisioning workflow, and isolation guarantees.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Laravel 13, PHP 8.5+, MySQL/MariaDB (tenant DBs), Laravel Sanctum for auth.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Connections & data planes
 
-## Learning Laravel
+| Connection | Used for                          | Database           |
+|------------|-----------------------------------|--------------------|
+| `control`  | tenant registry + platform auth   | `vee_care_control` |
+| `tenant`   | the resolved tenant's database    | dynamically swapped |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- The default connection is `control`. `App\Http\Middleware\ResolveTenant`
+  resolves the hostname: platform domains stay on `control`; hospital hosts
+  (`<slug>.<platform-domain>` or a custom domain) swap the `tenant` connection
+  and make it the default, so tenant code never runs against `control`.
+- Control-plane users use `App\Models\PlatformUser` (fixed `control`
+  connection, `users` table). Hospital users use `App\Models\User` on the
+  resolved tenant connection.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Environment
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```env
+DB_DATABASE=vee_care_control
+TENANT_PLATFORM_DOMAIN=vee-care.test
+TENANT_PLATFORM_SUBDOMAINS=api,admin,www
+TENANT_DB_PREFIX=vee_care_tenant_
+# Blank TENANT_DB_DRIVER falls back to DB_CONNECTION (mysql).
+# Set to "sqlite" for local dev/tests: databases become files in TENANT_DB_PATH.
+TENANT_DB_DRIVER=
+TENANT_DB_PATH=database/tenants
+# Hospital-admin invitation lifetime in days (default 7).
+TENANT_INVITATION_EXPIRY_DAYS=7
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Invitation emails use standard Laravel mail (`MAIL_MAILER`, `MAIL_FROM_ADDRESS`,
+etc.) and are queued on `QUEUE_CONNECTION`. Sending is best-effort — a mail
+failure is logged and never fails provisioning. In dev, `MAIL_MAILER=log` writes
+the invitation to the log file.
 
-## Contributing
+Tests force `TENANT_DB_DRIVER=sqlite` with tenant databases as files under
+`backend/database/tenants/` and an in-memory control database.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Setup & local development
 
-## Code of Conduct
+```bash
+composer install
+cp .env.example .env && php artisan key:generate
+php artisan migrate --path=database/migrations        # control plane
+php artisan tenants:provision "City General Hospital" \
+  --email admin@citygeneral.vee-care.test
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The tenant schema lives in `database/migrations/tenant/*` and is applied to
+each tenant database during provisioning (`php artisan tenants:migrate
+--tenant=slug`).
 
-## Security Vulnerabilities
+## Auth
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **Tenants:** `POST /api/auth/register` (patients), `POST /api/auth/login`,
+  `GET /api/auth/me`. Tokens are issued by the resolved tenant's Sanctum table;
+  they never authenticate on another tenant or on the platform host.
+- **Platform:** `POST /api/platform/auth/login`, `GET /api/platform/me`
+  against `PlatformUser` on the `control` database.
 
-## License
+Roles are split by plane (`App\Enums\Role` / `App\Enums\PlatformRole`):
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Tenant roles** (`App\Enums\Role`): `hospital_admin`, `doctor`, `nurse`,
+  `patient`, `lab_technician`, `pharmacist`. Tenant DBs top out at
+  `hospital_admin`; legacy `super_admin`/`admin` values are consolidated to
+  `hospital_admin` by migration. Tenant routes gate with `role:hospital_admin`.
+- **Platform roles** (`App\Enums\PlatformRole`): `platform_super_admin`,
+  `platform_admin` — only on `PlatformUser` in the control DB. Platform routes
+  gate with `role:platform_super_admin,platform_admin` behind `auth:platform`.
+- Platform role values are not members of the tenant enum, so tenant
+  validation and middleware reject them (a hospital admin can never mint or
+  escalate to a platform role).
+
+## Hospital onboarding
+
+- `POST /api/platform/hospital-applications` (public) creates a `pending`
+  application: hospital/contact details + subdomain only. It never accepts
+  roles, passwords or DB credentials and never provisions a tenant. It is
+  rate-limited to **5/min per client** (`throttle:hospital-applications`).
+- Platform admins `PATCH /{application}` (under review), then
+  `POST /{application}/approve` provisions the tenant via
+  `TenantProvisioner` (active, seeded with one `hospital_admin`) and issues a
+  single-use invitation to the applicant — **no password is generated or
+  returned** — or `POST /{application}/reject` (no tenant, slug freed).
+- `App\Rules\AvailableHospitalSubdomain` enforces DNS-label format, rejects
+  reserved platform subdomains and slugs already claimed by a tenant or a
+  non-rejected application.
+- Tenant status is `App\Enums\TenantStatus`; non-active (suspended/rejected)
+  tenants are blocked at the tenant boundary with 403.
+- Approval failures never leave a half-created tenant: the tenant record and
+  database are rolled back and the application stays `pending`.
+
+### Hospital-admin invitation
+
+`App\Models\HospitalAdminInvitation` is single-use and expires after
+`TENANT_INVITATION_EXPIRY_DAYS` (default 7):
+
+- `POST /api/platform/hospital-applications/invitations/{token}/accept`
+  (public, rate-limited to 10/min per client) sets the hospital admin's
+  password inside the resolved tenant database.
+- Only the token's SHA-256 digest is stored; the raw token is returned to the
+  approver once and emailed to the applicant
+  (`App\Mail\HospitalAdminInvitation`). It is never logged, and passwords never
+  appear in emails, URLs, logs or API responses.
+- Expired, used or unknown tokens are rejected with a generic 422; tokens are
+  scoped to the application/tenant they were issued for.
+
+### Platform audit events
+
+`App\Models\PlatformAuditLog` records `hospital_application.submitted /
+reviewed / approved / rejected / invitation_accepted` on the control database
+with the platform actor, application/tenant ids, IP, user agent, and metadata.
+Passwords and invitation tokens are never recorded.
+
+## Seeding
+
+`database/seeders/TenantSeeder.php` runs inside each tenant DB during
+provisioning: one organization, one main branch, and an optional admin.
+`organization_id`/`branch_id` columns remain as compatibility context,
+auto-filled to the tenant's organization; the resolved tenant database is the
+authoritative tenant boundary, never a client-supplied id.
+
+## Tests
+
+```bash
+vendor/bin/phpunit
+```
+
+- `tests/Feature/TenantIsolationTest.php` — tenancy infrastructure: resolution,
+  schema creation, token isolation, provisioning/seeding.
+- `tests/Feature/CoreDomainIsolationTest.php` — core-domain boundary: patients,
+  practitioners, appointments are tenant-local; cross-tenant references and
+  payload tampering are rejected; platform vs tenant credentials are isolated.
+- `tests/Feature/HospitalOnboardingTest.php` — onboarding lifecycle:
+  application -> review -> approve/provision or reject, subdomain validation,
+  platform-role gating (including `hospital_admin` denial), audit events,
+  rate limiting, and failure rollback.
+- `tests/Feature/HospitalAdminInvitationTest.php` — invitation lifecycle:
+  valid/used/expired/unknown tokens, tenant scoping, password set + login, and
+  invitation email dispatch.

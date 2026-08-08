@@ -28,10 +28,10 @@ export function EnterpriseModulesPage() {
   const [active, setActive] = useState<(typeof modules)[number]>(
     requestedModule && modules.includes(requestedModule) ? requestedModule : 'patients',
   );
-  const canUsePatients = ['admin', 'doctor', 'nurse', 'super_admin'].includes(user?.role ?? '');
-  const canUseStaff = ['admin', 'super_admin'].includes(user?.role ?? '');
-  const canUseEhr = ['admin', 'doctor', 'nurse', 'lab_technician', 'super_admin'].includes(user?.role ?? '');
-  const canUsePharmacy = ['admin', 'pharmacist', 'super_admin'].includes(user?.role ?? '');
+  const canUsePatients = ['hospital_admin', 'doctor', 'nurse'].includes(user?.role ?? '');
+  const canUseStaff = ['hospital_admin'].includes(user?.role ?? '');
+  const canUseEhr = ['hospital_admin', 'doctor', 'nurse', 'lab_technician'].includes(user?.role ?? '');
+  const canUsePharmacy = ['hospital_admin', 'pharmacist'].includes(user?.role ?? '');
   const patients = useEnterprisePatients('', (active === 'patients' && canUsePatients) || (active === 'ehr' && canUsePatients));
   const staff = useEnterpriseStaff('', active === 'staff' && canUseStaff);
   const ehr = useEnterpriseEhr((['ehr', 'lab', 'ai'].includes(active)) && canUseEhr, selectedPatientId);
@@ -104,7 +104,7 @@ export function EnterpriseModulesPage() {
     if (module === 'staff') return canUseStaff;
     if (module === 'ehr' || module === 'lab') return canUseEhr;
     if (module === 'pharmacy') return canUsePharmacy;
-    if (module === 'ai') return ['admin', 'doctor'].includes(user?.role ?? '');
+    if (module === 'ai') return ['hospital_admin', 'doctor'].includes(user?.role ?? '');
     return true;
   });
   const visibleActive = allowedModules.includes(active) ? active : allowedModules[0];
@@ -211,7 +211,7 @@ export function EnterpriseModulesPage() {
               </article>
             ))}
           </Card>
-          {['admin', 'super_admin'].includes(user?.role ?? '') ? (
+          {['hospital_admin'].includes(user?.role ?? '') ? (
             <Card>
               <h2>Issue virtual card</h2>
               <p>Issue a Vee-care membership card to a registered patient.</p>
@@ -309,7 +309,7 @@ export function EnterpriseModulesPage() {
           </Card>
 
           <div className={styles.ehrActions}>
-            {['doctor', 'admin', 'super_admin'].includes(user?.role ?? '') ? (
+            {['doctor', 'hospital_admin'].includes(user?.role ?? '') ? (
               <Card>
                 <div className={styles.panelHeader}>
                   <span>Doctor note</span>

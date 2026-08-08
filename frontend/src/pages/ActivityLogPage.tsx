@@ -50,8 +50,7 @@ const actionMeta: Record<string, { label: string; icon: typeof Activity; color: 
 };
 
 const roleBadgeColors: Record<string, { bg: string; text: string }> = {
-  admin: { bg: '#e0f2fe', text: '#0369a1' },
-  super_admin: { bg: '#fef3c7', text: '#b45309' },
+  hospital_admin: { bg: '#e0f2fe', text: '#0369a1' },
   doctor: { bg: '#dcfce7', text: '#15803d' },
   nurse: { bg: '#fce7f3', text: '#be185d' },
   patient: { bg: '#e0e7ff', text: '#4338ca' },
@@ -133,7 +132,7 @@ const itemMotion: Variants = {
 
 export function ActivityLogPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const isAdmin = user?.role === 'hospital_admin';
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [userIdFilter, setUserIdFilter] = useState('');

@@ -10,7 +10,6 @@ import {
   Pill,
   ShieldCheck,
   Stethoscope,
-  Users,
   Video,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -21,10 +20,10 @@ import { Card, StatCard } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
 import { specialtyDepartmentOptions } from '../constants/specialties';
 import { useAuth } from '../context/AuthContext';
-import { useAdminAnalytics, useAppointments, useMedicalRecords } from '../hooks/useApi';
+import { useAppointments, useMedicalRecords } from '../hooks/useApi';
 import { useEnterpriseDashboard, useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, usePharmacyRequests } from '../hooks/useEnterprise';
 import { endpoints } from '../services/endpoints';
-import type { Appointment, Role } from '../types';
+import type { Appointment, PlatformRole, Role } from '../types';
 import styles from './DashboardPage.module.scss';
 
 function AppointmentList({ title, appointments }: { title: string; appointments: Appointment[] }) {
@@ -111,16 +110,14 @@ function WorkflowCard({
 export function DashboardPage() {
   const { user } = useAuth();
   const role = user?.role;
-  const isSuperAdmin = role === 'super_admin';
-  const needsEnterpriseStats = ['admin', 'lab_technician', 'pharmacist'].includes(role ?? '');
-  const needsAppointments = ['patient', 'doctor', 'admin', 'super_admin'].includes(role ?? '');
-  const needsRecords = ['patient', 'doctor', 'nurse', 'lab_technician', 'admin', 'super_admin'].includes(role ?? '');
-  const needsPatients = ['admin', 'doctor', 'nurse'].includes(role ?? '');
+  const needsEnterpriseStats = ['hospital_admin', 'lab_technician', 'pharmacist'].includes(role ?? '');
+  const needsAppointments = ['patient', 'doctor', 'hospital_admin'].includes(role ?? '');
+  const needsRecords = ['patient', 'doctor', 'nurse', 'lab_technician', 'hospital_admin'].includes(role ?? '');
+  const needsPatients = ['hospital_admin', 'doctor', 'nurse'].includes(role ?? '');
   const needsEhr = ['doctor', 'lab_technician'].includes(role ?? '');
-  const needsPharmacy = ['admin', 'pharmacist'].includes(role ?? '');
+  const needsPharmacy = ['hospital_admin', 'pharmacist'].includes(role ?? '');
   const appointments = useAppointments(undefined, needsAppointments);
   const records = useMedicalRecords(undefined, needsRecords);
-  const adminStats = useAdminAnalytics(isSuperAdmin);
   const enterprise = useEnterpriseDashboard(needsEnterpriseStats);
   const patients = useEnterprisePatients('', needsPatients);
   const ehr = useEnterpriseEhr(needsEhr);
@@ -140,34 +137,30 @@ export function DashboardPage() {
   const labOptions = (ehr.data?.labTests ?? []).map((test: { id: number; name: string }) => ({ label: test.name, value: test.id }));
   const medicineOptions = (pharmacy.data?.medicines?.data ?? []).map((medicine: { id: number; name: string }) => ({ label: medicine.name, value: medicine.id }));
 
-  const dashboards: Partial<Record<Role, ReactNode>> = {
-    super_admin: (
+  const dashboards: Partial<Record<Role | PlatformRole, ReactNode>> = {
+    platform_super_admin: (
       <div className={styles.stack}>
         <div className={styles.roleHero}>
           <ShieldCheck />
           <div>
-            <p>Platform oversight</p>
-            <h2>Monitor users, subscriptions, compliance signals, and platform health.</h2>
+            <p>Platform administration</p>
+            <h2>Hospital onboarding, tenant oversight, and platform configuration.</h2>
           </div>
-          <Link to="/admin"><Button variant="secondary">Open admin panel</Button></Link>
-        </div>
-        <div className={styles.grid}>
-          <StatCard label="Platform users" value={adminStats.data?.users.total ?? 0} />
-          <StatCard label="Patients" value={adminStats.data?.users.patients ?? 0} />
-          <StatCard label="Doctors" value={adminStats.data?.users.doctors ?? 0} />
-          <StatCard label="Appointments" value={adminStats.data?.appointments.total ?? 0} />
-          <StatCard label="Messages" value={adminStats.data?.messages ?? 0} />
-          <StatCard label="Medical records" value={adminStats.data?.medicalRecords ?? 0} />
-          <StatCard label="Prescriptions" value={adminStats.data?.prescriptions ?? 0} />
-        </div>
-        <div className={styles.actions}>
-          <QuickAction to="/enterprise" icon={Activity} label="Operations analytics" />
-          <QuickAction to="/admin" icon={Users} label="User governance" />
-          <QuickAction to="/enterprise/modules?module=ehr" icon={FileText} label="Clinical records" />
         </div>
       </div>
     ),
-    admin: (
+    platform_admin: (
+      <div className={styles.stack}>
+        <div className={styles.roleHero}>
+          <ShieldCheck />
+          <div>
+            <p>Platform administration</p>
+            <h2>Review hospital applications, approve tenants, and issue admin invitations.</h2>
+          </div>
+        </div>
+      </div>
+    ),
+    hospital_admin: (
       <div className={styles.stack}>
         <div className={styles.roleHero}>
           <Activity />
@@ -402,5 +395,5 @@ export function DashboardPage() {
     ),
   };
 
-  return dashboards[role as Role] ?? dashboards.patient;
+  return dashboards[role as Role | PlatformRole] ?? dashboards.patient;
 }

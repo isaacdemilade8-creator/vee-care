@@ -19,13 +19,13 @@ class PatientCardResource extends JsonResource
             'patient' => $this->whenLoaded('patient', fn () => [
                 'id' => $this->patient->id,
                 'name' => $this->patient->name,
-                'role' => $this->patient->role === 'hospital_admin' ? 'admin' : $this->patient->role,
+                'role' => $this->patient->role,
                 'avatarUrl' => $this->patient->avatar_url,
             ]),
             'issuer' => $this->whenLoaded('issuer', fn () => [
                 'id' => $this->issuer->id,
                 'name' => $this->issuer->name,
-                'role' => $this->issuer->role === 'hospital_admin' ? 'admin' : $this->issuer->role,
+                'role' => $this->issuer->role,
             ]),
             'createdAt' => $this->created_at?->toISOString(),
         ];

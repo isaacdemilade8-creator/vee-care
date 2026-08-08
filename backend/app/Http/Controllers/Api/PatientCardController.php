@@ -19,7 +19,7 @@ class PatientCardController extends Controller
 
         $query = PatientCard::query()->with(['patient', 'issuer']);
 
-        if (! $user->isRole('super_admin', 'admin', 'nurse')) {
+        if (! $user->isRole('hospital_admin', 'nurse')) {
             $query->where('patient_id', $user->id);
         } elseif ($request->integer('patient_id')) {
             $query->where('patient_id', $request->integer('patient_id'));
