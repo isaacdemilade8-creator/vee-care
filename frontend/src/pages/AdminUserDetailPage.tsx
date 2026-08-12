@@ -57,7 +57,7 @@ export function AdminUserDetailPage() {
     staleTime: 30_000,
   });
 
-  const record = detail.data;
+  const record = detail.data?.data;
   const branches = organization?.branches ?? [];
 
   const isSelf = record != null && user?.id === record.id;
