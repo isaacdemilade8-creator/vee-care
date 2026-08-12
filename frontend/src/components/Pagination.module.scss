@@ -1,0 +1,64 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arrow,
+.pageNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--app-line);
+  border-radius: 9px;
+  background: var(--app-surface);
+  color: var(--app-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.arrow:hover:not(:disabled),
+.pageNum:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 40%, var(--app-line));
+  color: var(--app-heading);
+}
+
+.arrow:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pageNumActive {
+  background: var(--app-accent);
+  border-color: var(--app-accent);
+  color: #ffffff;
+}
+
+.pageNumActive:hover {
+  color: #ffffff;
+}
+
+.ellipsis {
+  color: var(--app-muted);
+  padding: 0 2px;
+}
+
+.info {
+  color: var(--app-muted);
+  font-size: 0.82rem;
+}

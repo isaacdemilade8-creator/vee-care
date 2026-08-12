@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -13,13 +13,15 @@ import { TextField, SelectField } from '../components/FormField';
 import { specialtyDepartmentOptions } from '../constants/specialties';
 import { useAuth } from '../context/AuthContext';
 import { useAdminAnalytics, useAdminUsers, usePosts } from '../hooks/useApi';
+import { getTenantConfiguration, isTenantRoleAssignable } from '../lib/tenant/configuration';
+import { useModuleEnabled } from '../lib/tenant/modules';
 import { endpoints } from '../services/endpoints';
 import type { Post } from '../types';
 import { formValues } from '../utils/form';
 import { excerpt, formatDate } from '../utils/format';
 import styles from './TablePage.module.scss';
 
-const managedRoles = [
+const MANAGED_ROLES = [
   { label: 'Patient', value: 'patient' },
   { label: 'Doctor', value: 'doctor' },
   { label: 'Nurse', value: 'nurse' },
@@ -43,8 +45,20 @@ const itemMotion: Variants = {
 export function AdminPanel() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { data: configuration } = useQuery({
+    queryKey: ['tenant-configuration'],
+    queryFn: getTenantConfiguration,
+    enabled: user?.role === 'hospital_admin',
+    staleTime: 30_000,
+  });
+  const managedRoles = useMemo(
+    () => MANAGED_ROLES.filter((role) => isTenantRoleAssignable(configuration, role.value)),
+    [configuration],
+  );
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') === 'campaign' ? 'campaign' : 'users';
+  const blogEnabled = useModuleEnabled('blog');
+  const prescriptionsEnabled = useModuleEnabled('prescriptions');
+  const activeTab = !blogEnabled ? 'users' : (searchParams.get('tab') === 'campaign' ? 'campaign' : 'users');
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState('doctor');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,7 +68,7 @@ export function AdminPanel() {
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const analytics = useAdminAnalytics();
   const users = useAdminUsers(search ? { search } : undefined);
-  const posts = usePosts({ per_page: '50' });
+  const posts = usePosts({ per_page: '50' }, blogEnabled);
   const visiblePosts = (posts.data?.data ?? []).filter((post) => {
     const query = postSearch.trim().toLowerCase();
     return !query || `${post.title ?? ''} ${post.body} ${post.author.name}`.toLowerCase().includes(query);
@@ -214,9 +228,11 @@ export function AdminPanel() {
         <button className={activeTab === 'users' ? styles.selectedTab : ''} type="button" onClick={() => setSearchParams({})}>
           User management
         </button>
-        <button className={activeTab === 'campaign' ? styles.selectedTab : ''} type="button" onClick={() => setSearchParams({ tab: 'campaign' })}>
-          Campaign
-        </button>
+        {blogEnabled ? (
+          <button className={activeTab === 'campaign' ? styles.selectedTab : ''} type="button" onClick={() => setSearchParams({ tab: 'campaign' })}>
+            Campaign
+          </button>
+        ) : null}
       </motion.div>
 
       {activeTab === 'users' ? (
@@ -229,7 +245,7 @@ export function AdminPanel() {
         <StatCard label="Pending appointments" value={analytics.data?.appointments.pending ?? 0} />
         <StatCard label="Medical records" value={analytics.data?.medicalRecords ?? 0} />
         <StatCard label="Messages" value={analytics.data?.messages ?? 0} />
-        <StatCard label="Prescriptions" value={analytics.data?.prescriptions ?? 0} />
+        {prescriptionsEnabled ? <StatCard label="Prescriptions" value={analytics.data?.prescriptions ?? 0} /> : null}
       </motion.div>
 
       <motion.div variants={itemMotion}>

@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Analytics, Appointment, AuditLog, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
+import type { AdminOrganizationResponse, AdminUser, AdminUserInvitationResult, AdminUsersResponse, Analytics, Appointment, AuditLog, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
 
 export const endpoints = {
   login: (payload: { email: string; password: string }) => api.post<{ user: User; token: string }>('/auth/login', payload),
@@ -31,9 +31,19 @@ export const endpoints = {
   prescriptions: () => api.get<Paginated<Prescription>>('/prescriptions'),
   createPrescription: (payload: unknown) => api.post<Prescription>('/prescriptions', payload),
   adminAnalytics: () => api.get<Analytics>('/admin/analytics'),
-  adminUsers: (params?: Record<string, string>) => api.get<Paginated<User>>('/admin/users', { params }),
-  createAdminUser: (payload: unknown) => api.post<User>('/admin/users', payload),
+  adminUsers: (params?: Record<string, string>) => api.get<AdminUsersResponse>('/admin/users', { params }),
+  adminUser: (id: number) => api.get<AdminUser>(`/admin/users/${id}`),
+  createAdminUser: (payload: unknown) => api.post<AdminUser>('/admin/users', payload),
+  updateAdminUser: (id: number, payload: unknown) => api.patch<AdminUser>(`/admin/users/${id}`, payload),
   deleteAdminUser: (id: number) => api.delete(`/admin/users/${id}`),
+  activateAdminUser: (id: number) => api.post<AdminUser>(`/admin/users/${id}/activate`),
+  deactivateAdminUser: (id: number) => api.post<AdminUser>(`/admin/users/${id}/deactivate`),
+  inviteAdminUser: (payload: unknown) =>
+    api.post<{ invitation: AdminUserInvitationResult }>('/admin/users/invitations', payload),
+  revokeAdminUserInvitation: (id: number) => api.delete(`/admin/users/invitations/${id}`),
+  acceptAdminUserInvitation: (token: string, payload: { name?: string; password: string; password_confirmation: string }) =>
+    api.post<{ message: string; user: AdminUser }>(`/admin/users/invitations/${token}/accept`, payload),
+  adminOrganization: () => api.get<AdminOrganizationResponse>('/admin/organization'),
   adminAppointments: (params?: Record<string, string>) => api.get<Paginated<Appointment>>('/admin/appointments', { params }),
   notifications: (params?: Record<string, string>) => api.get<Paginated<CareNotification>>('/notifications', { params }),
   markNotificationRead: (id: number) => api.patch<CareNotification>(`/notifications/${id}/read`),

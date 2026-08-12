@@ -1,12 +1,15 @@
-import { CreditCard, HeartPulse } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
+import { useTenantName } from '../context/TenantContext';
 import type { PatientCard } from '../types';
 import styles from './VirtualCard.module.scss';
+import { TenantBrandLogo } from './tenant/TenantBrandLogo';
 
 interface VirtualCardProps {
   card: PatientCard;
 }
 
 export function VirtualCard({ card }: VirtualCardProps) {
+  const tenantName = useTenantName();
   const expiresText = card.expiresAt
     ? new Date(card.expiresAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
     : 'N/A';
@@ -17,8 +20,8 @@ export function VirtualCard({ card }: VirtualCardProps) {
         <div className={styles.cardFront}>
           <div className={styles.cardHeader}>
             <div className={styles.brand}>
-              <HeartPulse size={22} />
-              <span>Vee-care</span>
+              <TenantBrandLogo size={22} alt={tenantName} />
+              <span>{tenantName}</span>
             </div>
             <CreditCard size={22} className={styles.chip} />
           </div>

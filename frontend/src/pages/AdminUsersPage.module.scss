@@ -1,0 +1,342 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.heading span {
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.heading h1 {
+  margin: 4px 0 0;
+  color: var(--app-heading);
+  font-size: 1.6rem;
+}
+
+.heading p {
+  margin: 6px 0 0;
+  color: var(--app-muted);
+  font-size: 0.92rem;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  height: 42px;
+  flex: 1;
+  min-width: 220px;
+  max-width: 380px;
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  background: var(--app-surface);
+  color: var(--app-muted);
+}
+
+.search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--app-text);
+  width: 100%;
+}
+
+.select {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  font-size: 0.88rem;
+}
+
+.tableCard {
+  overflow: hidden;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableHead,
+.row {
+  display: grid;
+  grid-template-columns: 1.6fr 1.1fr 0.9fr 1fr 0.7fr;
+  gap: 16px;
+  align-items: center;
+  padding: 13px 20px;
+}
+
+.tableHead {
+  background: var(--app-surface-strong);
+  color: var(--app-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--app-line-soft);
+}
+
+.row {
+  border-bottom: 1px solid var(--app-line-soft);
+  color: var(--app-text);
+  font-size: 0.9rem;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--app-surface-strong);
+}
+
+.name {
+  color: var(--app-heading);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--app-accent);
+}
+
+.email {
+  display: block;
+  margin-top: 2px;
+  color: var(--app-muted);
+  font-size: 0.8rem;
+}
+
+.role {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--app-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.date {
+  color: var(--app-muted);
+  font-size: 0.85rem;
+}
+
+.actionsCol {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 9px;
+  color: var(--app-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.view:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 40%, var(--app-line));
+  color: var(--app-heading);
+}
+
+.pendingCard {
+  overflow: hidden;
+}
+
+.pendingHead {
+  padding: 16px 20px 0;
+}
+
+.pendingHead span {
+  color: var(--app-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pendingHead h2 {
+  margin: 4px 0 0;
+  color: var(--app-heading);
+  font-size: 1.05rem;
+}
+
+.pendingList {
+  padding: 8px 20px 14px;
+}
+
+.pendingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--app-line-soft);
+}
+
+.pendingRow:last-child {
+  border-bottom: none;
+}
+
+.pendingMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pendingMain strong {
+  color: var(--app-heading);
+  font-size: 0.9rem;
+}
+
+.pendingMain span {
+  color: var(--app-muted);
+  font-size: 0.8rem;
+}
+
+.revoke {
+  color: var(--app-warm) !important;
+}
+
+.inviteCard {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 30%, var(--app-line));
+}
+
+.inviteHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--app-accent);
+  margin-bottom: 14px;
+}
+
+.inviteHeader > div {
+  flex: 1;
+}
+
+.inviteHeader h2 {
+  margin: 0;
+  color: var(--app-heading);
+  font-size: 1.05rem;
+}
+
+.inviteHeader p {
+  margin: 4px 0 0;
+  color: var(--app-muted);
+  font-size: 0.85rem;
+}
+
+.inviteRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--app-line-soft);
+}
+
+.inviteRow > div {
+  min-width: 0;
+}
+
+.inviteRow span {
+  display: block;
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.inviteRow code {
+  display: block;
+  font-family: var(--app-mono, monospace);
+  font-size: 0.8rem;
+  color: var(--app-heading);
+  word-break: break-all;
+}
+
+.inviteExpiry {
+  margin: 10px 0 0;
+  color: var(--app-muted);
+  font-size: 0.8rem;
+}
+
+.copied {
+  color: var(--app-accent);
+  border-color: var(--app-accent);
+}
+
+.modalLead {
+  margin: 0 0 14px;
+  color: var(--app-text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.dangerButton {
+  background: #dc2626;
+}
+
+@media (max-width: 760px) {
+  .tableHead {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+    padding: 14px 16px;
+  }
+
+  .role {
+    grid-column: 1 / -1;
+  }
+
+  .date {
+    display: none;
+  }
+}

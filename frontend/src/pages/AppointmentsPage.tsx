@@ -12,7 +12,9 @@ import { Modal } from '../components/Modal';
 import { SkeletonRows } from '../components/Skeleton';
 import { VirtualCard } from '../components/VirtualCard';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { useApiMutation, useAppointments, useDoctors } from '../hooks/useApi';
+import { useModuleEnabled } from '../lib/tenant/modules';
 import { endpoints } from '../services/endpoints';
 import type { Appointment } from '../types';
 import styles from './TablePage.module.scss';
@@ -33,6 +35,8 @@ const paymentSchema = z.object({
 
 export function AppointmentsPage() {
   const { user } = useAuth();
+  const tenantName = useTenantName();
+  const telemedicineEnabled = useModuleEnabled('telemedicine');
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -177,7 +181,7 @@ export function AppointmentsPage() {
                       <Button variant="ghost" onClick={() => updateAppointment.mutate({ id: item.id, payload: { status: 'rejected' } })}>Reject</Button>
                     </div>
                   ) : null}
-                  {item.status === 'approved' ? (
+                  {item.status === 'approved' && telemedicineEnabled ? (
                     <Link to={`/consultations/${item.id}`}>
                       <Button variant="secondary">Join video</Button>
                     </Link>
@@ -249,7 +253,7 @@ export function AppointmentsPage() {
                     <span className={styles.paymentRadioMark} />
                     <div>
                       <strong>Membership card</strong>
-                      <p>Pay with your Vee-care card &middot; {myCard?.card?.cardNumber}</p>
+                      <p>Pay with your {tenantName} card &middot; {myCard?.card?.cardNumber}</p>
                     </div>
                   </label>
                   <label className={styles.paymentRadio}>
@@ -299,7 +303,7 @@ export function AppointmentsPage() {
                     <span className={styles.paymentRadioMark} />
                     <div>
                       <strong>Request a medical card</strong>
-                      <p>Get a Vee-care membership card for faster bookings in the future</p>
+                      <p>Get a {tenantName} membership card for faster bookings in the future</p>
                     </div>
                   </label>
                   <label className={styles.paymentRadio}>

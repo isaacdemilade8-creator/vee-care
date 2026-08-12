@@ -1,0 +1,115 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.pageHeader {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 1rem;
+  min-width: 0;
+
+  p {
+    color: var(--app-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    color: var(--app-heading);
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  span {
+    color: var(--app-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+}
+
+.cardGrid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.list {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.listRow {
+  align-items: center;
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+}
+
+.listInfo {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+
+  strong {
+    color: var(--app-heading);
+  }
+
+  span {
+    color: var(--app-muted);
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+}
+
+.listMeta {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.6rem;
+}
+
+.required {
+  background: var(--app-accent-soft);
+  border-radius: 999px;
+  color: var(--app-accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.25rem 0.6rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.formGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.formHint {
+  color: var(--app-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: -0.5rem 0 0;
+}
+
+@media (min-width: 820px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

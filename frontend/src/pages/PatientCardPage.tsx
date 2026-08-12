@@ -9,6 +9,7 @@ import { Modal } from '../components/Modal';
 import { TextField } from '../components/FormField';
 import { VirtualCard } from '../components/VirtualCard';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { endpoints } from '../services/endpoints';
 import styles from './PatientCardPage.module.scss';
 
@@ -24,6 +25,7 @@ const itemMotion: Variants = {
 
 export function PatientCardPage() {
   const { user } = useAuth();
+  const tenantName = useTenantName();
   const queryClient = useQueryClient();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
@@ -139,7 +141,7 @@ export function PatientCardPage() {
         <Modal title="Request a membership card" onClose={() => setShowRequestModal(false)}>
           <form onSubmit={handleRequestCard} style={{ display: 'grid', gap: '1rem' }}>
             <p style={{ color: 'var(--app-muted)', margin: 0, lineHeight: 1.5 }}>
-              Pay the one-time membership fee to get your Vee-care virtual card. Once issued, you can use it for faster appointment bookings.
+              Pay the one-time membership fee to get your {tenantName} virtual card. Once issued, you can use it for faster appointment bookings.
             </p>
             <TextField
               label="Card number"

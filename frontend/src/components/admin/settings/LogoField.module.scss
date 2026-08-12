@@ -1,0 +1,99 @@
+.field {
+  align-items: center;
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 0.85rem;
+}
+
+.preview {
+  align-items: center;
+  background: var(--app-surface-strong);
+  border: 1px dashed var(--app-line);
+  border-radius: 10px;
+  color: var(--app-muted);
+  display: inline-flex;
+  height: 3rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 3rem;
+
+  img {
+    height: 100%;
+    object-fit: contain;
+    width: 100%;
+  }
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+.info {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+
+  strong {
+    color: var(--app-heading);
+    font-size: 0.95rem;
+  }
+
+  code {
+    color: var(--app-muted);
+    font-size: 0.78rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+
+  button {
+    align-items: center;
+    background: var(--app-surface-strong);
+    border: 1px solid var(--app-line);
+    border-radius: 8px;
+    color: var(--app-accent);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 700;
+    justify-content: center;
+    min-height: 2.1rem;
+    padding: 0.35rem 0.7rem;
+    transition: border-color 160ms ease, color 160ms ease;
+
+    &:hover:not(:disabled) {
+      border-color: var(--app-accent);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  .reset {
+    color: var(--app-muted);
+    padding: 0;
+    width: 2.1rem;
+
+    &:hover:not(:disabled) {
+      color: var(--app-accent);
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

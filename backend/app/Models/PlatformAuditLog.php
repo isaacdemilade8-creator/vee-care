@@ -10,10 +10,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Control-plane audit record.
  *
  * Tracks hospital-onboarding lifecycle events (submitted, reviewed, approved,
- * rejected, invitation accepted). Writes go to the control database only and
- * never include passwords, tokens or database credentials.
+ * rejected, invitation accepted) and platform-user management events
+ * (invited, invitation accepted/revoked, activated, deactivated, role
+ * changed). Writes go to the control database only and never include
+ * passwords, tokens or database credentials.
  */
-#[Fillable(['event', 'platform_user_id', 'application_id', 'tenant_id', 'metadata', 'ip_address', 'user_agent'])]
+#[Fillable(['event', 'platform_user_id', 'subject_user_id', 'application_id', 'tenant_id', 'metadata', 'ip_address', 'user_agent'])]
 class PlatformAuditLog extends Model
 {
     protected $connection = 'control';
@@ -28,6 +30,15 @@ class PlatformAuditLog extends Model
     public function actor(): BelongsTo
     {
         return $this->belongsTo(PlatformUser::class, 'platform_user_id');
+    }
+
+    /**
+     * The platform user an event is about (e.g. the deactivated user). Null
+     * for events that precede a user row, such as "platform_user.invited".
+     */
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(PlatformUser::class, 'subject_user_id');
     }
 
     public function application(): BelongsTo

@@ -26,12 +26,15 @@ use App\Models\Vital;
 use App\Services\AuditService;
 use App\Services\Contracts\AiClinicalAssistant;
 use App\Services\NotificationService;
+use App\Services\TenantConfigurationService;
+use App\Services\TenantResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class EnterpriseController extends Controller
 {
@@ -582,7 +585,7 @@ class EnterpriseController extends Controller
             ));
     }
 
-    public function registerStaff(Request $request, AuditService $audit): UserResource
+    public function registerStaff(Request $request, AuditService $audit, TenantResolver $resolver, TenantConfigurationService $configuration): UserResource
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -592,6 +595,17 @@ class EnterpriseController extends Controller
             'specialty' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],
         ]);
+
+        // A hospital may disable an optional role (pharmacist, lab_technician):
+        // the role must not be assignable through the staff invitation path
+        // either. Mirrors AdminController::storeUser.
+        $tenant = $resolver->current();
+
+        if ($tenant && ! $configuration->isRoleEnabled($tenant, $data['role'])) {
+            throw ValidationException::withMessages([
+                'role' => ['This role is not enabled at your hospital.'],
+            ]);
+        }
 
         $staff = User::create([
             'name' => $data['name'],

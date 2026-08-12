@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { SkeletonRows } from '../components/Skeleton';
 import { Link } from 'react-router-dom';
 import { useEnterpriseDashboard } from '../hooks/useEnterprise';
+import { useModuleEnabled } from '../lib/tenant/modules';
 import styles from './EnterpriseDashboard.module.scss';
 
 const chartData = [
@@ -17,6 +18,7 @@ const chartData = [
 
 export function EnterpriseDashboard() {
   const dashboard = useEnterpriseDashboard();
+  const pharmacyEnabled = useModuleEnabled('pharmacy');
   const stats = dashboard.data?.stats;
 
   if (dashboard.isLoading) {
@@ -36,7 +38,7 @@ export function EnterpriseDashboard() {
         <StatCard label="Patients" value={stats?.patients ?? 0} />
         <StatCard label="Staff" value={stats?.staff ?? 0} />
         <StatCard label="Appointments today" value={stats?.appointmentsToday ?? 0} />
-        <StatCard label="Low stock items" value={stats?.lowStock ?? 0} />
+        {pharmacyEnabled ? <StatCard label="Low stock items" value={stats?.lowStock ?? 0} /> : null}
       </div>
       <div className={styles.grid}>
         <Card>

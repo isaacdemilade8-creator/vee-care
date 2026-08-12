@@ -43,6 +43,12 @@ Frontend default: `http://127.0.0.1:5173`
 
 API default: `http://127.0.0.1:8000/api`
 
+### Local tenant hosts
+
+Tenant and platform subdomains (`hospital-one.vee-care.test`, `admin.vee-care.test`, …) resolve locally via the OS hosts file; see
+[Local tenant-host development setup](MULTI_TENANCY_ARCHITECTURE.md#local-tenant-host-development-setup) in
+[MULTI_TENANCY_ARCHITECTURE.md](MULTI_TENANCY_ARCHITECTURE.md).
+
 ## API Routes
 
 See [backend/API_ROUTES.md](backend/API_ROUTES.md).

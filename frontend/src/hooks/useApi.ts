@@ -43,8 +43,12 @@ export function useProfileReviews(id?: number) {
   });
 }
 
-export function usePosts(filters?: Record<string, string>) {
-  return useQuery({ queryKey: ['posts', filters], queryFn: async () => (await endpoints.posts(filters)).data });
+export function usePosts(filters?: Record<string, string>, enabled = true) {
+  return useQuery({
+    queryKey: ['posts', filters],
+    enabled,
+    queryFn: async () => (await endpoints.posts(filters)).data,
+  });
 }
 
 export function usePrescriptions(enabled = true) {
@@ -110,9 +114,10 @@ export function useAuditLogs(filters?: Record<string, string>) {
   });
 }
 
-export function useUrgentCareRequests(filters?: Record<string, string>) {
+export function useUrgentCareRequests(filters?: Record<string, string>, enabled = true) {
   return useQuery({
     queryKey: ['urgent-care-requests', filters],
+    enabled,
     queryFn: async () => (await endpoints.urgentCareRequests(filters)).data,
   });
 }

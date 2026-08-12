@@ -7,6 +7,8 @@ use App\Http\Resources\UserResource;
 use App\Models\AuditLog;
 use App\Models\PatientProfile;
 use App\Models\User;
+use App\Services\TenantConfigurationService;
+use App\Services\TenantResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +30,7 @@ class AuthController extends Controller
         $data['role'] = 'patient';
 
         $user = User::create($data);
-        $this->ensurePatientProfile($user);
+        PatientProfile::ensureFor($user);
 
         AuditLog::create([
             'user_id' => $user->id,
@@ -43,7 +45,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, TenantResolver $resolver, TenantConfigurationService $configuration): JsonResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -55,6 +57,24 @@ class AuthController extends Controller
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        // Deactivated accounts cannot sign in (their tokens are revoked on
+        // deactivation; this also blocks fresh logins).
+        if (! $user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been deactivated. Contact your administrator.'],
+            ]);
+        }
+
+        // A hospital may disable an optional role (e.g. pharmacist): the
+        // account still exists but must not be able to sign in.
+        $tenant = $resolver->current();
+
+        if ($tenant && ! $configuration->isRoleEnabled($tenant, (string) $user->role)) {
+            throw ValidationException::withMessages([
+                'email' => ['Your role is not enabled at this hospital. Contact your administrator.'],
             ]);
         }
 
@@ -91,23 +111,5 @@ class AuthController extends Controller
         $user->currentAccessToken()?->delete();
 
         return response()->json(['message' => 'Logged out successfully.']);
-    }
-
-    private function ensurePatientProfile(User $user): void
-    {
-        if (! $user->isRole('patient')) {
-            return;
-        }
-
-        PatientProfile::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'organization_id' => null,
-                'branch_id' => null,
-                'patient_number' => 'PAT-'.str_pad((string) $user->id, 6, '0', STR_PAD_LEFT),
-                'allergies' => [],
-                'chronic_conditions' => [],
-            ],
-        );
     }
 }

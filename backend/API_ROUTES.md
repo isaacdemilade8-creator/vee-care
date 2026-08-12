@@ -10,6 +10,12 @@ Authenticated requests use `Authorization: Bearer <token>`.
 - `GET /auth/me` - current user.
 - `POST /auth/logout` - revoke current token.
 
+## Hospital configuration (hospital_admin only)
+- `GET /configuration` - read the hospital's branding, modules, roles, settings and name.
+- `PATCH /configuration` - partial update; accepts `name`, `branding`, `modules`, `roles`, `settings`.
+- `GET /platform/tenants/{tenant}/configuration` - platform view of a tenant's configuration.
+- `PATCH /platform/tenants/{tenant}/configuration` - platform update of a tenant's configuration.
+
 ## Appointments
 - `GET /appointments?status=pending&search=smith&page=1`
 - `POST /appointments` - patient books an appointment.

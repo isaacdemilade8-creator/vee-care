@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { AppSettingsProvider } from './context/AppSettingsContext';
+import { TenantProvider } from './context/TenantContext';
 import './styles/globals.scss';
 
 const queryClient = new QueryClient({
@@ -22,10 +23,12 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppSettingsProvider>
-          <AuthProvider>
-            <App />
-            <Toaster position="top-right" />
-          </AuthProvider>
+          <TenantProvider>
+            <AuthProvider>
+              <App />
+              <Toaster position="top-right" />
+            </AuthProvider>
+          </TenantProvider>
         </AppSettingsProvider>
       </BrowserRouter>
     </QueryClientProvider>

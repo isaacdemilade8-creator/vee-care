@@ -17,10 +17,11 @@ import { Card } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { useApiMutation, useAppointments, useDoctors, useUrgentCareRequests } from '../hooks/useApi';
+import { useModuleEnabled, type TenantModuleKey } from '../lib/tenant/modules';
 import { endpoints } from '../services/endpoints';
 import styles from './CareServicesPage.module.scss';
 
-const serviceTracks = [
+const serviceTracks: { title: string; description: string; to: string; icon: typeof MessageCircle; module?: TenantModuleKey }[] = [
   {
     title: '24/7 Care Chat',
     description: 'Message doctors and care teams for quick guidance, follow-up questions, and handoffs.',
@@ -32,6 +33,7 @@ const serviceTracks = [
     description: 'Send an urgent request to the care desk and keep the message connected to your patient account.',
     to: '#urgent-request',
     icon: AlertTriangle,
+    module: 'urgent_care',
   },
   {
     title: 'Specialist Consults',
@@ -44,6 +46,7 @@ const serviceTracks = [
     description: 'Join approved consultations from your appointment queue with secure in-app signaling.',
     to: '/appointments',
     icon: Video,
+    module: 'telemedicine',
   },
   {
     title: 'Health Records',
@@ -56,6 +59,7 @@ const serviceTracks = [
     description: 'Read clinician posts, follow providers, save updates, and share helpful health education.',
     to: '/blog',
     icon: HeartPulse,
+    module: 'blog',
   },
 ];
 
@@ -70,9 +74,12 @@ const nextWave = [
 
 export function CareServicesPage() {
   const { user } = useAuth();
+  const urgentCareEnabled = useModuleEnabled('urgent_care');
+  const telemedicineEnabled = useModuleEnabled('telemedicine');
+  const blogEnabled = useModuleEnabled('blog');
   const appointments = useAppointments();
   const doctors = useDoctors();
-  const urgentRequests = useUrgentCareRequests({ per_page: '3' });
+  const urgentRequests = useUrgentCareRequests({ per_page: '3' }, urgentCareEnabled);
   const [message, setMessage] = useState('');
   const [symptoms, setSymptoms] = useState('');
   const [severity, setSeverity] = useState('moderate');
@@ -96,6 +103,12 @@ export function CareServicesPage() {
 
   const latestUrgentRequest = urgentRequests.data?.data[0];
   const canSubmitTriage = user?.role === 'patient';
+  const moduleEnabled: Partial<Record<TenantModuleKey, boolean>> = {
+    urgent_care: urgentCareEnabled,
+    telemedicine: telemedicineEnabled,
+    blog: blogEnabled,
+  };
+  const tracks = serviceTracks.filter((track) => !track.module || moduleEnabled[track.module]);
 
   const submitUrgentRequest = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -137,7 +150,7 @@ export function CareServicesPage() {
       </section>
 
       <section className={styles.serviceGrid}>
-        {serviceTracks.map(({ title, description, to, icon: Icon }) => (
+        {tracks.map(({ title, description, to, icon: Icon }) => (
           <a key={title} href={to} className={styles.serviceCard}>
             <Icon size={24} />
             <strong>{title}</strong>
@@ -168,81 +181,85 @@ export function CareServicesPage() {
           )}
         </Card>
 
-        <Card>
-          <div className={styles.sectionHeader}>
-            <Video />
-            <div>
-              <h3>Next Video Visit</h3>
-              <p>Approved consultations are ready for secure video rooms.</p>
+        {telemedicineEnabled ? (
+          <Card>
+            <div className={styles.sectionHeader}>
+              <Video />
+              <div>
+                <h3>Next Video Visit</h3>
+                <p>Approved consultations are ready for secure video rooms.</p>
+              </div>
             </div>
-          </div>
-          {appointments.isLoading ? <SkeletonRows rows={2} /> : approvedAppointment ? (
-            <div className={styles.videoVisit}>
-              <strong>{approvedAppointment.reason}</strong>
-              <span>{new Date(approvedAppointment.scheduledAt).toLocaleString()}</span>
-              <Link to={`/consultations/${approvedAppointment.id}`}>
-                <Button variant="secondary"><Video size={18} /> Join room</Button>
-              </Link>
-            </div>
-          ) : (
-            <div className={styles.videoVisit}>
-              <strong>No approved video visits</strong>
-              <span>Book a visit and join once the care team approves it.</span>
-              <Link to="/appointments"><Button variant="secondary">View appointments</Button></Link>
-            </div>
-          )}
-        </Card>
+            {appointments.isLoading ? <SkeletonRows rows={2} /> : approvedAppointment ? (
+              <div className={styles.videoVisit}>
+                <strong>{approvedAppointment.reason}</strong>
+                <span>{new Date(approvedAppointment.scheduledAt).toLocaleString()}</span>
+                <Link to={`/consultations/${approvedAppointment.id}`}>
+                  <Button variant="secondary"><Video size={18} /> Join room</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className={styles.videoVisit}>
+                <strong>No approved video visits</strong>
+                <span>Book a visit and join once the care team approves it.</span>
+                <Link to="/appointments"><Button variant="secondary">View appointments</Button></Link>
+              </div>
+            )}
+          </Card>
+        ) : null}
       </section>
 
       <section className={styles.split}>
-        <Card id="urgent-request">
-          <div className={styles.sectionHeader}>
-            <AlertTriangle />
-            <div>
-              <h3>{canSubmitTriage ? 'Urgent Request' : 'Urgent Triage Queue'}</h3>
-              <p>{canSubmitTriage ? 'Share symptoms, urgency, and how the care team should contact you.' : 'Review the latest urgent care item available to your role.'}</p>
-            </div>
-          </div>
-          {canSubmitTriage ? (
-            <form className={styles.urgentForm} onSubmit={submitUrgentRequest}>
-              <div className={styles.formGrid}>
-                <label>
-                  <span>Severity</span>
-                  <select value={severity} onChange={(event) => setSeverity(event.target.value)}>
-                    <option value="low">Low</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Preferred channel</span>
-                  <select value={preferredChannel} onChange={(event) => setPreferredChannel(event.target.value)}>
-                    <option value="chat">Chat</option>
-                    <option value="video">Video</option>
-                    <option value="phone">Phone</option>
-                  </select>
-                </label>
+        {urgentCareEnabled ? (
+          <Card id="urgent-request">
+            <div className={styles.sectionHeader}>
+              <AlertTriangle />
+              <div>
+                <h3>{canSubmitTriage ? 'Urgent Request' : 'Urgent Triage Queue'}</h3>
+                <p>{canSubmitTriage ? 'Share symptoms, urgency, and how the care team should contact you.' : 'Review the latest urgent care item available to your role.'}</p>
               </div>
-              <label>
-                <span>Symptoms</span>
-                <input value={symptoms} onChange={(event) => setSymptoms(event.target.value)} maxLength={300} placeholder="Chest pain, fever, dizziness" />
-              </label>
-              <label>
-                <span>Context</span>
-                <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={800} rows={4} placeholder="When did it start? What changed? Any medication taken?" />
-              </label>
-              <Button disabled={emergencyRequest.isPending || !symptoms.trim()}><ShieldCheck size={18} /> Queue triage</Button>
-            </form>
-          ) : null}
-          {latestUrgentRequest ? (
-            <div className={styles.triageStatus}>
-              <strong>{latestUrgentRequest.queueName.replaceAll('-', ' ')}</strong>
-              <span>{latestUrgentRequest.status} - {latestUrgentRequest.severity} priority</span>
-              {latestUrgentRequest.assignee ? <span>Assigned to {latestUrgentRequest.assignee.name}</span> : <span>Care team assignment pending</span>}
             </div>
-          ) : null}
-        </Card>
+            {canSubmitTriage ? (
+              <form className={styles.urgentForm} onSubmit={submitUrgentRequest}>
+                <div className={styles.formGrid}>
+                  <label>
+                    <span>Severity</span>
+                    <select value={severity} onChange={(event) => setSeverity(event.target.value)}>
+                      <option value="low">Low</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Preferred channel</span>
+                    <select value={preferredChannel} onChange={(event) => setPreferredChannel(event.target.value)}>
+                      <option value="chat">Chat</option>
+                      <option value="video">Video</option>
+                      <option value="phone">Phone</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  <span>Symptoms</span>
+                  <input value={symptoms} onChange={(event) => setSymptoms(event.target.value)} maxLength={300} placeholder="Chest pain, fever, dizziness" />
+                </label>
+                <label>
+                  <span>Context</span>
+                  <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={800} rows={4} placeholder="When did it start? What changed? Any medication taken?" />
+                </label>
+                <Button disabled={emergencyRequest.isPending || !symptoms.trim()}><ShieldCheck size={18} /> Queue triage</Button>
+              </form>
+            ) : null}
+            {latestUrgentRequest ? (
+              <div className={styles.triageStatus}>
+                <strong>{latestUrgentRequest.queueName.replaceAll('-', ' ')}</strong>
+                <span>{latestUrgentRequest.status} - {latestUrgentRequest.severity} priority</span>
+                {latestUrgentRequest.assignee ? <span>Assigned to {latestUrgentRequest.assignee.name}</span> : <span>Care team assignment pending</span>}
+              </div>
+            ) : null}
+          </Card>
+        ) : null}
 
         <Card>
           <div className={styles.sectionHeader}>

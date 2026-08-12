@@ -26,4 +26,26 @@ class PatientProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Ensure a tenant user who holds the patient role has a patient profile.
+     * Idempotent; used by registration and by the invitation-acceptance flow.
+     */
+    public static function ensureFor(User $user): ?PatientProfile
+    {
+        if (! $user->isRole('patient')) {
+            return null;
+        }
+
+        return self::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'organization_id' => $user->organization_id,
+                'branch_id' => $user->branch_id,
+                'patient_number' => 'PAT-'.str_pad((string) $user->id, 6, '0', STR_PAD_LEFT),
+                'allergies' => [],
+                'chronic_conditions' => [],
+            ],
+        );
+    }
 }

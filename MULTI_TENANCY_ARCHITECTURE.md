@@ -101,6 +101,41 @@ $domain = TenantDomain::with('tenant')->where('domain', $host)->first();
 // fallback: Tenant::where('slug', $subdomain)
 ```
 
+## Local tenant-host development setup
+
+Tenant hosts (`hospital-one.vee-care.test`, `hospital-two.vee-care.test`) and
+platform subdomains (`api.vee-care.test`, `admin.vee-care.test`) are not real
+DNS names, so they must be mapped to the loopback address on the machine that
+runs the local servers.
+
+Windows developers add entries to
+`C:\Windows\System32\drivers\etc\hosts` (editing the file as Administrator):
+
+```text
+127.0.0.1 hospital-one.vee-care.test
+127.0.0.1 hospital-two.vee-care.test
+127.0.0.1 admin.vee-care.test
+127.0.0.1 api.vee-care.test
+```
+
+Only add the entries required by what you are testing. The Windows hosts file
+does **not** support wildcards — there is no catch-all `*.vee-care.test` line;
+each tenant subdomain you want to reach needs its own `127.0.0.1` entry.
+
+The Vite dev server (`frontend/vite.config.ts` → `server.allowedHosts`) accepts
+the local host plus any `vee-care.test` subdomain, so the frontend can be opened
+at e.g. `http://hospital-one.vee-care.test:5173`.
+
+### Development-only `?host=` override
+
+In local development the SPA on a tenant host reaches the API at the loopback
+address (`http://127.0.0.1:8000/api`), where the backend cannot see the tenant
+hostname. `GET /api/tenant-context` therefore accepts an optional `?host=`
+query parameter naming the tenant host being viewed. It is honored only outside
+production and returns the matching tenant's public context
+(`TenantContextController`). In production the parameter is ignored and tenant
+identity is always derived from the actual request hostname.
+
 ## Provisioning
 
 `App\Services\TenantProvisioner::provision()` runs the full lifecycle:
@@ -142,9 +177,36 @@ Served on the platform domain, authenticated with the `platform` guard against
 | `POST /api/platform/tenants/{t}/domains` | Add a custom domain       |
 | `DELETE /api/platform/tenants/{t}/domains/{d}` | Remove a domain    |
 | `POST /api/platform/tenants/{t}/migrate` | Run pending migrations    |
+| `GET/PATCH /api/platform/tenants/{t}/configuration` | Platform view / update of a tenant's configuration |
 
 Tenant routes (`/api/auth/*`, appointments, pharmacy, enterprise, etc.) are
 unchanged and now run inside the resolved tenant database.
+
+### Hospital self-service configuration API
+
+Served on the tenant host, authenticated with the Sanctum `hospital_admin`
+token for the **active tenant only** (resolved from the request Host via
+`TenantResolver`, never from a client-supplied id).
+
+| Route                    | Purpose                                              |
+|--------------------------|------------------------------------------------------|
+| `GET /api/configuration` | Read the hospital's branding/modules/roles/settings  |
+| `PATCH /api/configuration` | Apply partial updates to any of those sections    |
+
+The response shape is `{ name, branding, modules, roles, settings }` — the
+same `TenantConfigurationResource` shape the platform uses, plus the hospital
+name. It never includes database fields or credentials.
+
+`PATCH` accepts `name` plus any subset of `branding`, `modules`, `roles`,
+`settings`. Validation and registries come from the shared
+`TenantConfigurationService` (`config/tenant-defaults.php`), so both surfaces
+enforce identical allowlists: unknown setting keys are rejected, required
+modules/roles cannot be disabled, and platform roles are never valid tenant
+roles. A `null` branding value resets a field to "inherit the Vee-Care
+default". Only values that actually change are persisted, and successful
+changes emit a `tenant.configuration.updated` audit event with
+`platform_user_id = null` and an `actor` metadata block describing the
+hospital admin.
 
 ## Models & services
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Card } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
+import { useTenantName } from '../context/TenantContext';
 import { useProfiles } from '../hooks/useApi';
 import styles from './ProfilesPage.module.scss';
 
@@ -17,6 +18,7 @@ const roleOptions = [
 ];
 
 export function ProfilesPage() {
+  const tenantName = useTenantName();
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
   const profiles = useProfiles({
@@ -57,7 +59,7 @@ export function ProfilesPage() {
                 {profile.averageRating ? (
                   <p className={styles.rating}>★ {profile.averageRating}/5 · {profile.reviewsCount ?? 0} reviews</p>
                 ) : null}
-                <p>{profile.bio || profile.specialty || profile.phone || 'vee-care member'}</p>
+                <p>{profile.bio || profile.specialty || profile.phone || `${tenantName} member`}</p>
               </Card>
             </Link>
           ))}

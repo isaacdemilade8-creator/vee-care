@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'slug', 'type', 'plan', 'status', 'currency', 'database_name', 'database_host', 'database_port', 'database_username', 'database_password', 'settings'])]
@@ -28,6 +29,21 @@ class Tenant extends Model
     public function domains(): HasMany
     {
         return $this->hasMany(TenantDomain::class);
+    }
+
+    public function branding(): HasOne
+    {
+        return $this->hasOne(TenantBranding::class);
+    }
+
+    public function modules(): HasMany
+    {
+        return $this->hasMany(TenantModule::class);
+    }
+
+    public function roleConfiguration(): HasMany
+    {
+        return $this->hasMany(TenantRoleConfiguration::class);
     }
 
     public function primaryDomain(): ?string

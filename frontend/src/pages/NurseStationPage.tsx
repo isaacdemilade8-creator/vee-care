@@ -11,6 +11,7 @@ import { SkeletonRows } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { useMedicalRecords, useUrgentCareRequests } from '../hooks/useApi';
 import { useEnterprisePatients, useEnterpriseVitals } from '../hooks/useEnterprise';
+import { useModuleEnabled } from '../lib/tenant/modules';
 import { endpoints } from '../services/endpoints';
 import type { PatientProfile, UrgentCareRequest, Vital } from '../types';
 import { formValues } from '../utils/form';
@@ -18,13 +19,14 @@ import styles from './TablePage.module.scss';
 
 export function NurseStationPage() {
   const { user } = useAuth();
+  const urgentCareEnabled = useModuleEnabled('urgent_care');
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState<number | undefined>();
   const patients = useEnterprisePatients(search);
   const vitals = useEnterpriseVitals(selectedPatientId, Boolean(selectedPatientId));
   const records = useMedicalRecords(undefined, true);
-  const triage = useUrgentCareRequests();
+  const triage = useUrgentCareRequests(undefined, urgentCareEnabled);
   const patientRows = patients.data?.data ?? [];
   const selectedPatient = patientRows.find((patient) => patient.user?.id === selectedPatientId);
   const activeTriage = (triage.data?.data ?? []).filter((item) => !['resolved', 'cancelled'].includes(item.status));
@@ -107,7 +109,7 @@ export function NurseStationPage() {
 
       <div className={styles.stats}>
         <StatCard label="Patients" value={patients.data?.meta?.total ?? 0} />
-        <StatCard label="Active triage" value={activeTriage.length} />
+        {urgentCareEnabled ? <StatCard label="Active triage" value={activeTriage.length} /> : null}
         <StatCard label="Records" value={records.data?.meta?.total ?? 0} />
         <StatCard label="Recent vitals" value={vitals.data?.meta?.total ?? 0} />
       </div>
@@ -215,32 +217,34 @@ export function NurseStationPage() {
           </div>
         </Card>
 
-        <Card>
-          <div className={styles.sectionTitle}>
-            <span>Triage</span>
-            <h3>Urgent care queue</h3>
-          </div>
-          <div className={styles.table}>
-            {activeTriage.map((request) => (
-              <article key={request.id}>
-                <strong>{request.patient?.name ?? 'Patient'} - {request.severity}</strong>
-                <span>{request.symptoms.join(', ')}</span>
-                <span>Status: {request.status} | Channel: {request.preferredChannel}</span>
-                <div>
-                  <Button variant="secondary" onClick={() => takeTriage(request)} disabled={updateTriage.isPending}>
-                    <Activity size={17} />
-                    Take
-                  </Button>
-                  <Button onClick={() => updateTriage.mutate({ id: request.id, payload: { status: 'resolved', assigned_to: request.assignee?.id ?? user?.id } })} disabled={updateTriage.isPending}>
-                    <ClipboardList size={17} />
-                    Resolve
-                  </Button>
-                </div>
-              </article>
-            ))}
-            {!activeTriage.length ? <p className={styles.empty}>No urgent triage requests waiting.</p> : null}
-          </div>
-        </Card>
+        {urgentCareEnabled ? (
+          <Card>
+            <div className={styles.sectionTitle}>
+              <span>Triage</span>
+              <h3>Urgent care queue</h3>
+            </div>
+            <div className={styles.table}>
+              {activeTriage.map((request) => (
+                <article key={request.id}>
+                  <strong>{request.patient?.name ?? 'Patient'} - {request.severity}</strong>
+                  <span>{request.symptoms.join(', ')}</span>
+                  <span>Status: {request.status} | Channel: {request.preferredChannel}</span>
+                  <div>
+                    <Button variant="secondary" onClick={() => takeTriage(request)} disabled={updateTriage.isPending}>
+                      <Activity size={17} />
+                      Take
+                    </Button>
+                    <Button onClick={() => updateTriage.mutate({ id: request.id, payload: { status: 'resolved', assigned_to: request.assignee?.id ?? user?.id } })} disabled={updateTriage.isPending}>
+                      <ClipboardList size={17} />
+                      Resolve
+                    </Button>
+                  </div>
+                </article>
+              ))}
+              {!activeTriage.length ? <p className={styles.empty}>No urgent triage requests waiting.</p> : null}
+            </div>
+          </Card>
+        ) : null}
       </div>
 
     </div>

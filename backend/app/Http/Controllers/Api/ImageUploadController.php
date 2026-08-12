@@ -13,7 +13,7 @@ class ImageUploadController extends Controller
     {
         $data = $request->validate([
             'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
-            'folder' => ['nullable', 'in:avatars,posts'],
+            'folder' => ['nullable', 'in:avatars,posts,branding'],
         ]);
 
         $folder = $data['folder'] ?? 'posts';

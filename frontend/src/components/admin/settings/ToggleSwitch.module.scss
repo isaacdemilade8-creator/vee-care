@@ -1,0 +1,37 @@
+.switch {
+  align-items: center;
+  background: color-mix(in srgb, var(--app-muted) 22%, transparent);
+  border: 1px solid var(--app-line);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 1.6rem;
+  padding: 0.15rem;
+  transition: background 160ms ease, border-color 160ms ease;
+  width: 2.9rem;
+
+  .knob {
+    background: var(--app-surface);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--app-text) 30%, transparent);
+    height: 1.28rem;
+    transform: translateX(0);
+    transition: transform 160ms ease;
+    width: 1.28rem;
+  }
+
+  &.on {
+    background: var(--app-accent);
+    border-color: var(--app-accent);
+
+    .knob {
+      transform: translateX(1.3rem);
+    }
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}

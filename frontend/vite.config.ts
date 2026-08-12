@@ -32,7 +32,17 @@ export default defineConfig({
       },
     }),
   ],
-  // server: {
-  //   allowedHosts: true
-  // }
+  server: {
+    // Local development only; does not affect the production build.
+    // Binds all interfaces so tenant hosts like
+    // http://hospital-one.vee-care.test:5173 resolve without extra CLI flags.
+    host: '0.0.0.0',
+    // Accepts the local dev host plus vee-care.test subdomains so tenant and
+    // platform pages can be opened at e.g. http://hospital-one.vee-care.test:5173.
+    // Vite's host validation only matches exact names or leading-dot entries
+    // ("this domain and all of its subdomains"); a literal `*.vee-care.test`
+    // glob is not matched. localhost and loopback IPs are always allowed and
+    // are listed here only to make the accepted set explicit.
+    allowedHosts: ['localhost', '127.0.0.1', '.vee-care.test'],
+  },
 })

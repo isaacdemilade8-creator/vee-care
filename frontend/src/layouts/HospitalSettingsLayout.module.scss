@@ -1,0 +1,132 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding-bottom: 6rem;
+}
+
+.header {
+  p,
+  h2 {
+    margin: 0;
+  }
+
+  p {
+    color: var(--app-accent);
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    color: var(--app-heading);
+    font-size: clamp(1.8rem, 5vw, 2.65rem);
+  }
+}
+
+.layout {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.tab {
+  align-items: center;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 999px;
+  color: var(--app-muted);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.9rem;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+
+  &:hover {
+    border-color: var(--app-accent);
+    color: var(--app-accent);
+  }
+
+  &.active {
+    background: var(--app-accent);
+    border-color: var(--app-accent);
+    color: #ffffff;
+  }
+}
+
+.content {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.saveBar {
+  align-items: center;
+  backdrop-filter: blur(16px) saturate(1.2);
+  background: color-mix(in srgb, var(--app-surface) 88%, transparent);
+  border: 1px solid var(--app-line);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 64px color-mix(in srgb, var(--app-text) 16%, transparent),
+    0 6px 20px color-mix(in srgb, var(--app-text) 8%, transparent);
+  bottom: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  // left: 50%;
+  max-width: 52rem;
+  padding: 0.85rem 1rem;
+  position: fixed;
+  transform: translateX(-50%);
+  width: min(100% - 2.5rem, 52rem);
+  z-index: 40;
+}
+
+.saveInfo {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+
+  strong {
+    color: var(--app-heading);
+  }
+
+  span {
+    color: var(--app-muted);
+    font-size: 0.8rem;
+  }
+}
+
+.saveActions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (min-width: 820px) {
+  .tabs {
+    justify-content: start;
+  }
+}

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Button } from '../components/Button';
 import { Card, StatCard } from '../components/Card';
@@ -22,9 +23,18 @@ import { specialtyDepartmentOptions } from '../constants/specialties';
 import { useAuth } from '../context/AuthContext';
 import { useAppointments, useMedicalRecords } from '../hooks/useApi';
 import { useEnterpriseDashboard, useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, usePharmacyRequests } from '../hooks/useEnterprise';
+import { useModuleEnabled } from '../lib/tenant/modules';
+import { getTenantConfiguration, isTenantRoleAssignable } from '../lib/tenant/configuration';
 import { endpoints } from '../services/endpoints';
 import type { Appointment, PlatformRole, Role } from '../types';
 import styles from './DashboardPage.module.scss';
+
+const STAFF_ROLES = [
+  { label: 'Doctor', value: 'doctor' },
+  { label: 'Nurse', value: 'nurse' },
+  { label: 'Lab Technician', value: 'lab_technician' },
+  { label: 'Pharmacist', value: 'pharmacist' },
+];
 
 function AppointmentList({ title, appointments }: { title: string; appointments: Appointment[] }) {
   return (
@@ -116,13 +126,25 @@ export function DashboardPage() {
   const needsPatients = ['hospital_admin', 'doctor', 'nurse'].includes(role ?? '');
   const needsEhr = ['doctor', 'lab_technician'].includes(role ?? '');
   const needsPharmacy = ['hospital_admin', 'pharmacist'].includes(role ?? '');
+  const pharmacyEnabled = useModuleEnabled('pharmacy');
+  const laboratoryEnabled = useModuleEnabled('laboratory');
+  const urgentCareEnabled = useModuleEnabled('urgent_care');
+  const nurseStationEnabled = useModuleEnabled('nurse_station');
+  const enterpriseEnabled = useModuleEnabled('enterprise');
   const appointments = useAppointments(undefined, needsAppointments);
   const records = useMedicalRecords(undefined, needsRecords);
-  const enterprise = useEnterpriseDashboard(needsEnterpriseStats);
+  const enterprise = useEnterpriseDashboard(needsEnterpriseStats && enterpriseEnabled);
   const patients = useEnterprisePatients('', needsPatients);
   const ehr = useEnterpriseEhr(needsEhr);
-  const pharmacy = useEnterprisePharmacy(needsPharmacy);
-  const pharmacyRequests = usePharmacyRequests('', needsPharmacy);
+  const pharmacy = useEnterprisePharmacy(needsPharmacy && pharmacyEnabled);
+  const pharmacyRequests = usePharmacyRequests('', needsPharmacy && pharmacyEnabled);
+  const { data: configuration } = useQuery({
+    queryKey: ['tenant-configuration'],
+    queryFn: getTenantConfiguration,
+    enabled: role === 'hospital_admin',
+    staleTime: 30_000,
+  });
+  const staffRoleOptions = STAFF_ROLES.filter((option) => isTenantRoleAssignable(configuration, option.value));
 
   if ((needsAppointments && appointments.isLoading) || (needsEnterpriseStats && enterprise.isLoading)) {
     return <SkeletonRows rows={5} />;
@@ -168,34 +190,31 @@ export function DashboardPage() {
             <p>Operations admin</p>
             <h2>Coordinate staff, queues, inventory, records, and patient flow.</h2>
           </div>
-          <Link to="/enterprise/modules"><Button variant="secondary">Manage modules</Button></Link>
+          {enterpriseEnabled ? <Link to="/enterprise/modules"><Button variant="secondary">Manage modules</Button></Link> : null}
         </div>
         <div className={styles.grid}>
-          <StatCard label="Patients" value={enterpriseStats?.patients ?? 0} />
-          <StatCard label="Staff" value={enterpriseStats?.staff ?? 0} />
-          <StatCard label="Appointments today" value={enterpriseStats?.appointmentsToday ?? 0} />
-          <StatCard label="Pending labs" value={enterpriseStats?.pendingLabs ?? 0} />
+          {enterpriseEnabled ? <StatCard label="Patients" value={enterpriseStats?.patients ?? 0} /> : null}
+          {enterpriseEnabled ? <StatCard label="Staff" value={enterpriseStats?.staff ?? 0} /> : null}
+          {enterpriseEnabled ? <StatCard label="Appointments today" value={enterpriseStats?.appointmentsToday ?? 0} /> : null}
+          {laboratoryEnabled && enterpriseEnabled ? <StatCard label="Pending labs" value={enterpriseStats?.pendingLabs ?? 0} /> : null}
         </div>
         <div className={styles.split}>
           <AppointmentList title="Operational queue" appointments={appointmentRows} />
-          <WorkflowCard
-            title="Register staff"
-            description="Create a worker account on the shared platform. Admins cannot create other admin accounts."
-            fields={[
-              { name: 'name', label: 'Full name', placeholder: 'Dr. Ada Morgan' },
-              { name: 'email', label: 'Staff email', type: 'email', placeholder: 'staff@example.com' },
-              { name: 'password', label: 'Temporary password', type: 'password', placeholder: 'Minimum 8 characters' },
-              { name: 'role', label: 'Role', options: [
-                { label: 'Doctor', value: 'doctor' },
-                { label: 'Nurse', value: 'nurse' },
-                { label: 'Lab Technician', value: 'lab_technician' },
-                { label: 'Pharmacist', value: 'pharmacist' },
-              ] },
-              { name: 'specialty', label: 'Specialty or department', options: specialtyDepartmentOptions },
-            ]}
-            button="Register worker"
-            onSubmit={(values) => endpoints.registerStaff(values)}
-          />
+          {enterpriseEnabled ? (
+            <WorkflowCard
+              title="Register staff"
+              description="Create a worker account on the shared platform. Admins cannot create other admin accounts."
+              fields={[
+                { name: 'name', label: 'Full name', placeholder: 'Dr. Ada Morgan' },
+                { name: 'email', label: 'Staff email', type: 'email', placeholder: 'staff@example.com' },
+                { name: 'password', label: 'Temporary password', type: 'password', placeholder: 'Minimum 8 characters' },
+                { name: 'role', label: 'Role', options: staffRoleOptions },
+                { name: 'specialty', label: 'Specialty or department', options: specialtyDepartmentOptions },
+              ]}
+              button="Register worker"
+              onSubmit={(values) => endpoints.registerStaff(values)}
+            />
+          ) : null}
         </div>
       </div>
     ),
@@ -235,8 +254,8 @@ export function DashboardPage() {
           />
         </div>
         <div className={styles.actions}>
-          <QuickAction to="/pharmacy/requests" icon={Pill} label="Send pharmacy request" />
-          <QuickAction to="/enterprise/modules?module=ehr" icon={FileText} label="Patient EHR" />
+          {pharmacyEnabled ? <QuickAction to="/pharmacy/requests" icon={Pill} label="Send pharmacy request" /> : null}
+          {enterpriseEnabled ? <QuickAction to="/enterprise/modules?module=ehr" icon={FileText} label="Patient EHR" /> : null}
         </div>
       </div>
     ),
@@ -248,7 +267,7 @@ export function DashboardPage() {
             <p>Nursing station</p>
             <h2>Track triage, vitals, care tasks, and patient handoffs.</h2>
           </div>
-          <Link to="/nurse/station"><Button variant="secondary">Open nurse station</Button></Link>
+          {nurseStationEnabled ? <Link to="/nurse/station"><Button variant="secondary">Open nurse station</Button></Link> : null}
         </div>
         <div className={styles.grid}>
           <StatCard label="Patients in care" value={patients.data?.meta?.total ?? 0} />
@@ -270,7 +289,7 @@ export function DashboardPage() {
             onSubmit={(values) => endpoints.recordVitals(values)}
           />
           <QuickAction to="/records" icon={FileText} label="Care notes" />
-          <QuickAction to="/nurse/station" icon={ClipboardList} label="Nurse station" />
+          {nurseStationEnabled ? <QuickAction to="/nurse/station" icon={ClipboardList} label="Nurse station" /> : null}
           <QuickAction to="/chat" icon={MessageCircle} label="Team messages" />
         </div>
       </div>
@@ -294,30 +313,32 @@ export function DashboardPage() {
         <div className={styles.actions}>
           <QuickAction to="/records" icon={FileText} label="View records" />
           <QuickAction to="/chat" icon={MessageCircle} label="Message doctor" />
-          <WorkflowCard
-            title="Emergency contact"
-            description="Queue an urgent triage request for the care desk."
-            fields={[
-              { name: 'severity', label: 'Severity', options: [
-                { label: 'Low', value: 'low' },
-                { label: 'Moderate', value: 'moderate' },
-                { label: 'High', value: 'high' },
-                { label: 'Critical', value: 'critical' },
-              ] },
-              { name: 'preferred_channel', label: 'Preferred channel', options: [
-                { label: 'Chat', value: 'chat' },
-                { label: 'Video', value: 'video' },
-                { label: 'Phone', value: 'phone' },
-              ] },
-              { name: 'symptoms', label: 'Symptoms', placeholder: 'Fever, dizziness, chest pain' },
-              { name: 'message', label: 'Message', placeholder: 'I need urgent assistance' },
-            ]}
-            button="Queue triage"
-            onSubmit={(values) => endpoints.emergencyRequest({
-              ...values,
-              symptoms: String(values.symptoms).split(',').map((symptom) => symptom.trim()).filter(Boolean),
-            })}
-          />
+          {urgentCareEnabled ? (
+            <WorkflowCard
+              title="Emergency contact"
+              description="Queue an urgent triage request for the care desk."
+              fields={[
+                { name: 'severity', label: 'Severity', options: [
+                  { label: 'Low', value: 'low' },
+                  { label: 'Moderate', value: 'moderate' },
+                  { label: 'High', value: 'high' },
+                  { label: 'Critical', value: 'critical' },
+                ] },
+                { name: 'preferred_channel', label: 'Preferred channel', options: [
+                  { label: 'Chat', value: 'chat' },
+                  { label: 'Video', value: 'video' },
+                  { label: 'Phone', value: 'phone' },
+                ] },
+                { name: 'symptoms', label: 'Symptoms', placeholder: 'Fever, dizziness, chest pain' },
+                { name: 'message', label: 'Message', placeholder: 'I need urgent assistance' },
+              ]}
+              button="Queue triage"
+              onSubmit={(values) => endpoints.emergencyRequest({
+                ...values,
+                symptoms: String(values.symptoms).split(',').map((symptom) => symptom.trim()).filter(Boolean),
+              })}
+            />
+          ) : null}
         </div>
       </div>
     ),
@@ -331,34 +352,36 @@ export function DashboardPage() {
           </div>
         </div>
         <div className={styles.grid}>
-          <StatCard label="Pending labs" value={enterpriseStats?.pendingLabs ?? 0} />
+          {laboratoryEnabled ? <StatCard label="Pending labs" value={enterpriseStats?.pendingLabs ?? 0} /> : null}
           <StatCard label="Reports today" value="4" />
           <StatCard label="Critical flags" value="1" />
-          <StatCard label="Assigned tests" value={ehr.data?.labTests?.length ?? 0} />
+          {laboratoryEnabled ? <StatCard label="Assigned tests" value={ehr.data?.labTests?.length ?? 0} /> : null}
         </div>
         <div className={styles.actions}>
-          <WorkflowCard
-            title="Update lab result"
-            description="Move a lab request forward and notify the care team."
-            fields={[
-              { name: 'lab_test_id', label: 'Lab test', options: labOptions },
-              { name: 'status', label: 'Status', options: [
-                { label: 'Processing', value: 'processing' },
-                { label: 'Completed', value: 'completed' },
-                { label: 'Flagged', value: 'flagged' },
-              ] },
-              { name: 'result_summary', label: 'Result summary', placeholder: 'Summary of findings' },
-            ]}
-            button="Update result"
-            onSubmit={(values) => endpoints.updateLabResult(Number(values.lab_test_id), { status: values.status, result_summary: values.result_summary })}
-          />
-          <QuickAction to="/laboratory" icon={FlaskConical} label="Lab workbench" />
+          {laboratoryEnabled ? (
+            <WorkflowCard
+              title="Update lab result"
+              description="Move a lab request forward and notify the care team."
+              fields={[
+                { name: 'lab_test_id', label: 'Lab test', options: labOptions },
+                { name: 'status', label: 'Status', options: [
+                  { label: 'Processing', value: 'processing' },
+                  { label: 'Completed', value: 'completed' },
+                  { label: 'Flagged', value: 'flagged' },
+                ] },
+                { name: 'result_summary', label: 'Result summary', placeholder: 'Summary of findings' },
+              ]}
+              button="Update result"
+              onSubmit={(values) => endpoints.updateLabResult(Number(values.lab_test_id), { status: values.status, result_summary: values.result_summary })}
+            />
+          ) : null}
+          {laboratoryEnabled ? <QuickAction to="/laboratory" icon={FlaskConical} label="Lab workbench" /> : null}
           <QuickAction to="/records" icon={FileText} label="Upload reports" />
           <QuickAction to="/chat" icon={MessageCircle} label="Notify doctors" />
         </div>
       </div>
     ),
-    pharmacist: (
+    pharmacist: pharmacyEnabled ? (
       <div className={styles.stack}>
         <div className={styles.roleHero}>
           <PackageCheck />
@@ -366,7 +389,7 @@ export function DashboardPage() {
             <p>Pharmacy console</p>
             <h2>Fulfill prescriptions, monitor stock, and manage medicine alerts.</h2>
           </div>
-          <Link to="/enterprise/modules"><Button variant="secondary">Inventory</Button></Link>
+          {enterpriseEnabled ? <Link to="/enterprise/modules"><Button variant="secondary">Inventory</Button></Link> : null}
         </div>
         <div className={styles.grid}>
           <StatCard label="Low stock" value={enterpriseStats?.lowStock ?? 0} />
@@ -377,7 +400,7 @@ export function DashboardPage() {
         <div className={styles.actions}>
           <QuickAction to="/pharmacy/inventory" icon={Boxes} label="Drug inventory" />
           <QuickAction to="/pharmacy/medicines/new" icon={PackageCheck} label="Add medicine" />
-          <QuickAction to="/enterprise/modules?module=pharmacy" icon={Pill} label="Pharmacy requests" />
+          {enterpriseEnabled ? <QuickAction to="/enterprise/modules?module=pharmacy" icon={Pill} label="Pharmacy requests" /> : null}
           <WorkflowCard
             title="Adjust stock"
             description="Record dispense, restock, expiry removal, or correction."
@@ -391,6 +414,16 @@ export function DashboardPage() {
           />
           <QuickAction to="/chat" icon={MessageCircle} label="Clarify orders" />
         </div>
+      </div>
+    ) : (
+      <div className={styles.stack}>
+        <Card>
+          <div className={styles.sectionTitle}>
+            <PackageCheck />
+            <h2>Pharmacy module disabled</h2>
+          </div>
+          <p>The pharmacy module is turned off for this hospital.</p>
+        </Card>
       </div>
     ),
   };

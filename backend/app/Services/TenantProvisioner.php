@@ -9,9 +9,7 @@ use RuntimeException;
 
 class TenantProvisioner
 {
-    public function __construct(private readonly TenantDatabaseManager $databases)
-    {
-    }
+    public function __construct(private readonly TenantDatabaseManager $databases) {}
 
     /**
      * Provision a complete tenant:
@@ -58,6 +56,7 @@ class TenantProvisioner
             $this->databases->migrate($tenant);
             app(TenantSeeder::class)->run($tenant, $email, $password);
             $this->registerPrimaryDomain($tenant, $slug);
+            app(TenantConfigurationService::class)->ensureDefaults($tenant);
 
             $tenant->update(['status' => TenantStatus::Active->value]);
         } catch (\Throwable $e) {

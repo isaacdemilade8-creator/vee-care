@@ -28,3 +28,28 @@ export function getApiErrorMessage(error: unknown, fallback = 'Something went wr
 
   return fallback;
 }
+
+/**
+ * Extracts Laravel-style validation errors from an axios error as a flat
+ * field -> first-message map, for inline form display.
+ */
+export function getValidationErrors(error: unknown): Record<string, string> {
+  if (typeof error !== 'object' || error === null) {
+    return {};
+  }
+
+  const errors = (error as {
+    response?: { data?: { errors?: Record<string, string[]> } };
+  }).response?.data?.errors;
+
+  if (!errors) {
+    return {};
+  }
+
+  const flattened: Record<string, string> = {};
+  for (const [field, messages] of Object.entries(errors)) {
+    flattened[field] = messages[0] ?? '';
+  }
+
+  return flattened;
+}

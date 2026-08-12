@@ -20,9 +20,9 @@ class TenantResource extends JsonResource
             'status' => $this->status,
             'currency' => $this->currency,
             'database_name' => $this->database_name,
-            'database_host' => $this->database_host,
-            'database_port' => $this->database_port,
-            'database_username' => $this->database_username,
+            // Connection details (host/port/username) and credentials are
+            // environment-level infrastructure, never per-tenant configuration;
+            // they are intentionally not exposed to the platform UI.
             'settings' => $this->settings,
             'domains' => TenantDomainResource::collection($this->whenLoaded('domains')),
             'created_at' => $this->created_at?->toISOString(),

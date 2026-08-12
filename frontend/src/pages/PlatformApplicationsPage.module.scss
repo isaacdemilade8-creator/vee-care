@@ -1,0 +1,150 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.heading span {
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.heading h1 {
+  margin: 4px 0 0;
+  color: var(--app-heading);
+  font-size: 1.6rem;
+}
+
+.heading p {
+  margin: 6px 0 0;
+  color: var(--app-muted);
+  font-size: 0.92rem;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.select {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  font-size: 0.88rem;
+}
+
+.tableCard {
+  overflow: hidden;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableHead,
+.row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.4fr 1fr 1fr 0.7fr;
+  gap: 16px;
+  align-items: center;
+  padding: 13px 20px;
+}
+
+.tableHead {
+  background: var(--app-surface-strong);
+  color: var(--app-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--app-line-soft);
+}
+
+.row {
+  border-bottom: 1px solid var(--app-line-soft);
+  color: var(--app-text);
+  font-size: 0.9rem;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--app-surface-strong);
+}
+
+.name {
+  color: var(--app-heading);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--app-accent);
+}
+
+.email {
+  color: var(--app-muted);
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.date {
+  color: var(--app-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.actionsCol {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 9px;
+  color: var(--app-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.view:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 40%, var(--app-line));
+  color: var(--app-heading);
+}
+
+@media (max-width: 900px) {
+  .tableHead {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+    padding: 14px 16px;
+  }
+
+  .email {
+    grid-column: 1 / -1;
+  }
+
+  .date {
+    display: none;
+  }
+}

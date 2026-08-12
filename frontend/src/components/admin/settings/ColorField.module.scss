@@ -1,0 +1,74 @@
+.field {
+  align-items: center;
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 0.85rem;
+}
+
+.swatchWrap {
+  align-items: center;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 2.75rem;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  width: 2.75rem;
+
+  input {
+    cursor: pointer;
+    inset: 0;
+    opacity: 0;
+    position: absolute;
+  }
+
+  .swatch {
+    border-radius: inherit;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.info {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+
+  strong {
+    color: var(--app-heading);
+    font-size: 0.95rem;
+  }
+
+  code {
+    color: var(--app-muted);
+    font-size: 0.78rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.reset {
+  align-items: center;
+  background: var(--app-surface-strong);
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  color: var(--app-muted);
+  cursor: pointer;
+  display: inline-flex;
+  height: 2.1rem;
+  justify-content: center;
+  transition: color 160ms ease, border-color 160ms ease;
+  width: 2.1rem;
+
+  &:hover {
+    border-color: var(--app-accent);
+    color: var(--app-accent);
+  }
+}

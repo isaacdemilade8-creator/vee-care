@@ -10,7 +10,6 @@ import {
   ChevronDown,
   ClipboardPlus,
   FileHeart,
-  HeartPulse,
   LockKeyhole,
   MessageSquareText,
   Newspaper,
@@ -22,6 +21,9 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { TenantBrandLogo } from '../components/tenant/TenantBrandLogo';
+import { useTenantName } from '../context/TenantContext';
+import { useModuleEnabled } from '../lib/tenant/modules';
 import bedsImage from '../assets/beds.png';
 import roomImage from '../assets/room.png';
 import surgeryImage from '../assets/surgery.png';
@@ -65,8 +67,11 @@ const carouselImages = [
 
 export function LandingPage() {
   const [activeSlide, setActiveSlide] = useState(0);
+  const tenantName = useTenantName();
+  const blogEnabled = useModuleEnabled('blog');
   const posts = useQuery({
     queryKey: ['landing-posts'],
+    enabled: blogEnabled,
     queryFn: async () => (await endpoints.posts({ per_page: '5' })).data,
   });
   const previewPosts = (posts.data?.data ?? []).slice(0, 5);
@@ -103,14 +108,14 @@ export function LandingPage() {
 
       <motion.nav className={styles.nav} initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
         <Link to="/" className={styles.brand}>
-          <HeartPulse size={25} />
-          <strong>vee-care</strong>
+          <TenantBrandLogo size={25} alt={tenantName} />
+          <strong>{tenantName}</strong>
         </Link>
         <div className={styles.navLinks}>
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
-          <Link to="/blog">Blog</Link>
+          {blogEnabled ? <Link to="/blog">Blog</Link> : null}
         </div>
         <div className={styles.navActions}>
           <Link to="/login">Login</Link>
@@ -123,7 +128,7 @@ export function LandingPage() {
       <section className={styles.hero}>
         <motion.div className={styles.copy} variants={stagger} initial="hidden" animate="show">
           <motion.span className={styles.eyebrow} variants={fadeUp}><Sparkles size={16} /> Shared healthcare operating system</motion.span>
-          <motion.h1 variants={fadeUp}>vee-care</motion.h1>
+          <motion.h1 variants={fadeUp}>{tenantName}</motion.h1>
           <motion.p variants={fadeUp}>Run appointments, EHR, telemedicine, pharmacy, lab, analytics, and patient communication from one secure HealthTech SaaS platform.</motion.p>
           <motion.div className={styles.ctaRow} variants={fadeUp}>
             <Link to="/register"><Button>Launch workspace <ArrowRight size={18} /></Button></Link>
@@ -219,7 +224,7 @@ export function LandingPage() {
         <div>
           <span>From front desk to pharmacy</span>
           <h2>One connected care journey</h2>
-          <p>vee-care keeps each role focused on its own workflow while the platform keeps records, alerts, and clinical operations synchronized behind the scenes.</p>
+          <p>{tenantName} keeps each role focused on its own workflow while the platform keeps records, alerts, and clinical operations synchronized behind the scenes.</p>
         </div>
         <motion.div className={styles.workflowSteps} variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }}>
           {['Patient checked in', 'Vitals recorded', 'Doctor consult', 'Lab processed', 'Prescription fulfilled', 'Care follow-up'].map((step, index) => (
@@ -231,39 +236,41 @@ export function LandingPage() {
         </motion.div>
       </motion.section>
 
-      <section className={styles.blog} id="blog">
-        <motion.div className={styles.sectionIntro} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-          <span><Newspaper size={17} /> Blog</span>
-          <h2>Fresh care guidance from the Vee-care team</h2>
-        </motion.div>
-        <div className={styles.blogRail}>
-          <motion.div className={styles.blogGrid} variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }}>
-            {previewPosts.map((post) => (
-              <motion.article key={post.id} variants={cardMotion} whileHover={{ y: -8, scale: 1.015 }}>
-                {post.imageUrl ? <img src={post.imageUrl} alt="" /> : <div className={styles.blogFallback}><Newspaper size={24} /></div>}
-                <div>
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                  <h3>{post.title || 'Care update'}</h3>
-                  <p>{post.body}</p>
-                  <Link to="/blog">Read article <ArrowRight size={16} /></Link>
-                </div>
-              </motion.article>
-            ))}
-            {!posts.isLoading && !previewPosts.length ? (
-              <motion.article variants={cardMotion}>
-                <div className={styles.blogFallback}><Newspaper size={24} /></div>
-                <div>
-                  <span>Coming soon</span>
-                  <h3>Care articles are being prepared</h3>
-                  <p>Official health guides and product updates will show here once the admin publishes them.</p>
-                  <Link to="/blog">Visit blog <ArrowRight size={16} /></Link>
-                </div>
-              </motion.article>
-            ) : null}
+      {blogEnabled ? (
+        <section className={styles.blog} id="blog">
+          <motion.div className={styles.sectionIntro} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <span><Newspaper size={17} /> Blog</span>
+            <h2>Fresh care guidance from the {tenantName} team</h2>
           </motion.div>
-        </div>
-        <Link to="/blog" className={styles.blogCta}><Button>Open blog <ArrowRight size={18} /></Button></Link>
-      </section>
+          <div className={styles.blogRail}>
+            <motion.div className={styles.blogGrid} variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }}>
+              {previewPosts.map((post) => (
+                <motion.article key={post.id} variants={cardMotion} whileHover={{ y: -8, scale: 1.015 }}>
+                  {post.imageUrl ? <img src={post.imageUrl} alt="" /> : <div className={styles.blogFallback}><Newspaper size={24} /></div>}
+                  <div>
+                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                    <h3>{post.title || 'Care update'}</h3>
+                    <p>{post.body}</p>
+                    <Link to="/blog">Read article <ArrowRight size={16} /></Link>
+                  </div>
+                </motion.article>
+              ))}
+              {!posts.isLoading && !previewPosts.length ? (
+                <motion.article variants={cardMotion}>
+                  <div className={styles.blogFallback}><Newspaper size={24} /></div>
+                  <div>
+                    <span>Coming soon</span>
+                    <h3>Care articles are being prepared</h3>
+                    <p>Official health guides and product updates will show here once the admin publishes them.</p>
+                    <Link to="/blog">Visit blog <ArrowRight size={16} /></Link>
+                  </div>
+                </motion.article>
+              ) : null}
+            </motion.div>
+          </div>
+          <Link to="/blog" className={styles.blogCta}><Button>Open blog <ArrowRight size={18} /></Button></Link>
+        </section>
+      ) : null}
 
       <section className={styles.pricing} id="pricing">
         <motion.div className={styles.sectionIntro} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
@@ -284,7 +291,7 @@ export function LandingPage() {
 
       <motion.section className={styles.testimonials} variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.25 }}>
         <motion.article variants={cardMotion} whileHover={{ y: -6 }}>
-          <p>vee-care gave our admin team, doctors, nurses, and pharmacy one shared operational picture without slowing down clinical work.</p>
+          <p>{tenantName} gave our admin team, doctors, nurses, and pharmacy one shared operational picture without slowing down clinical work.</p>
           <strong>Dr. Amara Okonkwo</strong>
           <span>Medical Director, Meridian Care</span>
         </motion.article>
@@ -317,7 +324,7 @@ export function LandingPage() {
           <span>Ready for cleaner care operations?</span>
           <h2>Launch a polished healthcare workspace today.</h2>
         </div>
-        <Link to="/register"><Button>Start vee-care <ArrowRight size={18} /></Button></Link>
+        <Link to="/register"><Button>Get started <ArrowRight size={18} /></Button></Link>
       </motion.section>
     </main>
   );

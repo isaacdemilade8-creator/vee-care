@@ -18,9 +18,7 @@ class TenantResolver
 
     protected string $context = self::CONTEXT_NONE;
 
-    public function __construct(private readonly TenantDatabaseManager $databases)
-    {
-    }
+    public function __construct(private readonly TenantDatabaseManager $databases) {}
 
     /**
      * Resolve a tenant from a hostname, or null when no tenant matches.
@@ -68,6 +66,15 @@ class TenantResolver
 
         if (! $host) {
             return false;
+        }
+
+        // During local development the API is usually reached at localhost or
+        // 127.0.0.1 while the browser is served from a .vee-care.test host.
+        // Treat loopback hosts as the platform (control plane) host so API
+        // calls keep working without production DNS. Never in production: an
+        // unknown host stays a 404 exactly as before.
+        if (! app()->isProduction() && in_array($host, ['localhost', '127.0.0.1', '0.0.0.0', '::1'], true)) {
+            return true;
         }
 
         $platformDomain = $this->normalizeHost(config('tenancy.platform_domain'));

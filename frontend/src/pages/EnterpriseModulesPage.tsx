@@ -9,8 +9,11 @@ import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { VirtualCard } from '../components/VirtualCard';
 import { SkeletonRows } from '../components/Skeleton';
+import { canAccess, routeRoles } from '../auth/roleAccess';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { useEnterpriseEhr, useEnterprisePatients, useEnterprisePharmacy, useEnterpriseStaff, usePharmacyRequests } from '../hooks/useEnterprise';
+import { useModuleEnabled } from '../lib/tenant/modules';
 import { endpoints } from '../services/endpoints';
 import type { Appointment, MedicalRecord, PatientCard, PharmacyRequest, PharmacyRequestItem, Prescription, UrgentCareRequest, User, Vital } from '../types';
 import styles from './EnterpriseModulesPage.module.scss';
@@ -19,6 +22,7 @@ const modules = ['patients', 'ehr', 'staff', 'pharmacy', 'lab', 'ai'] as const;
 
 export function EnterpriseModulesPage() {
   const { user } = useAuth();
+  const tenantName = useTenantName();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedModule = searchParams.get('module') as (typeof modules)[number] | null;
@@ -28,15 +32,17 @@ export function EnterpriseModulesPage() {
   const [active, setActive] = useState<(typeof modules)[number]>(
     requestedModule && modules.includes(requestedModule) ? requestedModule : 'patients',
   );
-  const canUsePatients = ['hospital_admin', 'doctor', 'nurse'].includes(user?.role ?? '');
-  const canUseStaff = ['hospital_admin'].includes(user?.role ?? '');
-  const canUseEhr = ['hospital_admin', 'doctor', 'nurse', 'lab_technician'].includes(user?.role ?? '');
-  const canUsePharmacy = ['hospital_admin', 'pharmacist'].includes(user?.role ?? '');
+  const canUsePatients = canAccess(user?.role, routeRoles.enterprisePatients);
+  const canUseStaff = canAccess(user?.role, routeRoles.enterpriseStaff);
+  const canUseEhr = canAccess(user?.role, routeRoles.enterpriseEhr);
+  const canUsePharmacy = canAccess(user?.role, routeRoles.pharmacy);
+  const pharmacyEnabled = useModuleEnabled('pharmacy');
+  const laboratoryEnabled = useModuleEnabled('laboratory');
   const patients = useEnterprisePatients('', (active === 'patients' && canUsePatients) || (active === 'ehr' && canUsePatients));
   const staff = useEnterpriseStaff('', active === 'staff' && canUseStaff);
   const ehr = useEnterpriseEhr((['ehr', 'lab', 'ai'].includes(active)) && canUseEhr, selectedPatientId);
-  const pharmacy = useEnterprisePharmacy(active === 'pharmacy' && canUsePharmacy);
-  const pharmacyRequests = usePharmacyRequests('', active === 'pharmacy' && canUsePharmacy);
+  const pharmacy = useEnterprisePharmacy(active === 'pharmacy' && canUsePharmacy && pharmacyEnabled);
+  const pharmacyRequests = usePharmacyRequests('', active === 'pharmacy' && canUsePharmacy && pharmacyEnabled);
   const updateRequestItem = useMutation({
     mutationFn: ({ id, availability_status }: { id: number; availability_status: 'available' | 'unavailable' }) =>
       endpoints.updatePharmacyRequestItem(id, { availability_status }),
@@ -102,8 +108,9 @@ export function EnterpriseModulesPage() {
   const allowedModules = modules.filter((module) => {
     if (module === 'patients') return canUsePatients;
     if (module === 'staff') return canUseStaff;
-    if (module === 'ehr' || module === 'lab') return canUseEhr;
-    if (module === 'pharmacy') return canUsePharmacy;
+    if (module === 'ehr') return canUseEhr;
+    if (module === 'lab') return canUseEhr && laboratoryEnabled;
+    if (module === 'pharmacy') return canUsePharmacy && pharmacyEnabled;
     if (module === 'ai') return ['hospital_admin', 'doctor'].includes(user?.role ?? '');
     return true;
   });
@@ -214,7 +221,7 @@ export function EnterpriseModulesPage() {
           {['hospital_admin'].includes(user?.role ?? '') ? (
             <Card>
               <h2>Issue virtual card</h2>
-              <p>Issue a Vee-care membership card to a registered patient.</p>
+              <p>Issue a {tenantName} membership card to a registered patient.</p>
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'end', flexWrap: 'wrap' }}>
                 <select
                   value={selectedPatientId ?? ''}
@@ -373,7 +380,7 @@ export function EnterpriseModulesPage() {
               </Card>
             ) : null}
 
-            {['doctor', 'lab_technician'].includes(user?.role ?? '') ? (
+            {laboratoryEnabled && ['doctor', 'lab_technician'].includes(user?.role ?? '') ? (
               <Card>
                 <div className={styles.panelHeader}>
                   <span>Lab result</span>
@@ -522,7 +529,7 @@ export function EnterpriseModulesPage() {
             ) : (
               <>
                 <p style={{ color: 'var(--app-muted)', lineHeight: 1.6, margin: 0 }}>
-                  Issue a new Vee-care membership card to <strong>{(patients.data?.data ?? []).find((p) => p.user?.id === selectedPatientId)?.user?.name ?? 'this patient'}</strong>?
+                  Issue a new {tenantName} membership card to <strong>{(patients.data?.data ?? []).find((p) => p.user?.id === selectedPatientId)?.user?.name ?? 'this patient'}</strong>?
                   This will generate a unique card number and set it active for 2 years.
                 </p>
                 <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>

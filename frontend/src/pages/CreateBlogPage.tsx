@@ -3,12 +3,15 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { TenantBrandLogo } from '../components/tenant/TenantBrandLogo';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { usePublishPost } from '../hooks/usePublishPost';
 import styles from './BlogPage.module.scss';
 
 export function CreateBlogPage() {
   const { user } = useAuth();
+  const tenantName = useTenantName();
   const navigate = useNavigate();
   const [preview, setPreview] = useState('');
   const createPost = usePublishPost(() => navigate('/blog'));
@@ -16,7 +19,7 @@ export function CreateBlogPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <Link to="/blog" className={styles.brand}><span>V</span> Vee-care Blog</Link>
+        <Link to="/blog" className={styles.brand}><TenantBrandLogo size={22} alt={tenantName} /> {tenantName}</Link>
         <nav className={styles.publicNav}>
           <Link to="/blog">Blog</Link>
           <Link to="/admin">Admin</Link>

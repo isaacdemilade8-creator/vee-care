@@ -1,0 +1,64 @@
+.preview {
+  --pv-accent: #0f766e;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 16px;
+  display: grid;
+  font-family: var(--pv-font, var(--app-font-family));
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.brand {
+  align-items: center;
+  color: var(--pv-accent);
+  display: flex;
+  gap: 0.6rem;
+
+  strong {
+    color: var(--app-heading);
+    font-size: 1.15rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.logo {
+  border-radius: 8px;
+  height: 2.2rem;
+  max-width: 8rem;
+  object-fit: contain;
+}
+
+.text {
+  color: var(--app-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.button {
+  background: var(--pv-accent);
+  border-radius: 10px;
+  color: #ffffff;
+  font-weight: 700;
+  justify-self: start;
+  padding: 0.7rem 1.1rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  background: color-mix(in srgb, var(--pv-accent) 12%, transparent);
+  border-radius: 999px;
+  color: var(--pv-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.4rem 0.8rem;
+}

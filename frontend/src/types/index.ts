@@ -211,6 +211,61 @@ export interface Paginated<T> {
   meta?: { current_page: number; last_page: number; total: number };
 }
 
+export type AdminUserStatus = 'active' | 'inactive';
+
+/**
+ * Tenant (hospital) user as returned by the hospital-admin user management
+ * API. Safe projection: identity, role, access state and profile details —
+ * never credentials.
+ */
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  isActive: boolean;
+  status: AdminUserStatus;
+  organizationId?: number | null;
+  branchId?: number | null;
+  branchName?: string | null;
+  specialty?: string | null;
+  phone?: string | null;
+  avatarUrl?: string | null;
+  createdAt?: string;
+}
+
+/** Outstanding hospital-user invitation (never exposes the token). */
+export interface PendingAdminUserInvitation {
+  id: number;
+  email: string;
+  name?: string | null;
+  role: Role;
+  inviterName?: string | null;
+  expiresAt?: string | null;
+  createdAt: string;
+}
+
+/** Single-use hospital-user invitation returned exactly once by invite(). */
+export interface AdminUserInvitationResult {
+  token: string;
+  email: string;
+  role: Role;
+  name?: string | null;
+  expiresAt: string;
+  acceptUrl: string;
+}
+
+/** Hospital user directory response: paginated users plus outstanding invites. */
+export interface AdminUsersResponse extends Paginated<AdminUser> {
+  pending: PendingAdminUserInvitation[];
+}
+
+/** GET /admin/organization: the tenant's organization and its branches. */
+export interface AdminOrganizationResponse {
+  organization: { id: number; name: string } | null;
+  branches: Array<{ id: number; name: string }>;
+}
+
 export interface EnterpriseStats {
   stats: Record<string, number>;
   activity: Array<{ label: string; time: string }>;

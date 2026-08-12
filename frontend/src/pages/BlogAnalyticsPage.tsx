@@ -2,12 +2,15 @@ import { BarChart3, Bookmark, Heart, MessageCircle, Repeat2, Share2 } from 'luci
 import { BlogTabs } from '../components/BlogTabs';
 import { Card, StatCard } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
+import { TenantBrandLogo } from '../components/tenant/TenantBrandLogo';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { usePosts } from '../hooks/useApi';
 import styles from './BlogPage.module.scss';
 
 export function BlogAnalyticsPage() {
   const { user } = useAuth();
+  const tenantName = useTenantName();
   const posts = usePosts(user?.id ? { user_id: String(user.id), per_page: '50' } : undefined);
   const rows = posts.data?.data ?? [];
   const totals = rows.reduce((acc, post) => ({
@@ -26,7 +29,7 @@ export function BlogAnalyticsPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.brand}><span>V</span> Vee-care Journal</div>
+        <div className={styles.brand}><TenantBrandLogo size={22} alt={tenantName} /> {tenantName}</div>
         <BlogTabs />
       </header>
 

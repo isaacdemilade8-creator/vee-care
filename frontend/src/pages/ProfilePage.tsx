@@ -8,6 +8,7 @@ import { Card, StatCard } from '../components/Card';
 import { TextAreaField } from '../components/FormField';
 import { SkeletonRows } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { useProfile, useProfileReviews } from '../hooks/useApi';
 import { endpoints } from '../services/endpoints';
 import styles from './ProfilePage.module.scss';
@@ -19,6 +20,7 @@ function formatRole(role?: string) {
 export function ProfilePage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const tenantName = useTenantName();
   const queryClient = useQueryClient();
   const profileId = id === 'me' ? user?.id : Number(id);
   const profile = useProfile(profileId);
@@ -64,7 +66,7 @@ export function ProfilePage() {
         <div className={styles.identity}>
           <span>{formatRole(person.role)}</span>
           <h2>{person.name}</h2>
-          <p>{person.bio || person.specialty || (isClinical ? 'Clinical team member' : 'CareGrid member')}</p>
+          <p>{person.bio || person.specialty || (isClinical ? 'Clinical team member' : `${tenantName} member`)}</p>
         </div>
         <div className={styles.actions}>
           <Link to="/profiles"><Button variant="secondary">Directory</Button></Link>

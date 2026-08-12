@@ -4,10 +4,11 @@ import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { motion, useMotionValue, useTransform, type Variants } from 'framer-motion';
-import { HeartPulse } from 'lucide-react';
 import { Button } from '../components/Button';
 import { SelectField, TextField } from '../components/FormField';
+import { TenantBrandLogo } from '../components/tenant/TenantBrandLogo';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { endpoints } from '../services/endpoints';
 import { getApiErrorMessage } from '../utils/apiError';
 import styles from './AuthPage.module.scss';
@@ -55,6 +56,7 @@ const decorOrbs = [
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const navigate = useNavigate();
   const { setSession } = useAuth();
+  const tenantName = useTenantName();
   const isRegister = mode === 'register';
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<AuthFormInput, unknown, AuthForm>({
     resolver: zodResolver(schema),
@@ -132,7 +134,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           ease: 'easeInOut',
         }}
       >
-        <HeartPulse size={28} />
+        <TenantBrandLogo size={28} />
       </motion.div>
 
       <motion.div
@@ -148,7 +150,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           transition={{ type: 'spring', stiffness: 150, damping: 15 }}
           onSubmit={handleSubmit(onSubmit)}
         >
-          <Link to="/" className={styles.brand}>vee-care</Link>
+          <Link to="/" className={styles.brand}><TenantBrandLogo size={22} alt={tenantName} /> {tenantName}</Link>
           <h1>{isRegister ? 'Create account' : 'Welcome back'}</h1>
 
           <div className={styles.fields}>

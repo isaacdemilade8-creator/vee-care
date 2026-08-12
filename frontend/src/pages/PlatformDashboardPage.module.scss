@@ -1,0 +1,142 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.heading span,
+.sectionHead span {
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.heading h1 {
+  margin: 4px 0 0;
+  color: var(--app-heading);
+  font-size: 1.6rem;
+}
+
+.heading p {
+  margin: 6px 0 0;
+  color: var(--app-muted);
+  font-size: 0.92rem;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sectionHead h2 {
+  margin: 4px 0 0;
+  color: var(--app-heading);
+  font-size: 1.15rem;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--app-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.more:hover {
+  text-decoration: underline;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--app-line-soft);
+  text-decoration: none;
+  color: var(--app-text);
+  transition: background 0.15s ease;
+}
+
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.listRow:hover {
+  background: var(--app-surface-strong);
+}
+
+.listMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.listMain strong {
+  color: var(--app-heading);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listSub {
+  color: var(--app-muted);
+  font-size: 0.8rem;
+}
+
+.listDate {
+  color: var(--app-muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--app-muted);
+  font-size: 0.9rem;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cardSkeleton {
+  height: 90px;
+  border-radius: 12px;
+  background: linear-gradient(100deg, var(--app-surface-strong) 40%, var(--app-bg) 50%, var(--app-surface-strong) 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}

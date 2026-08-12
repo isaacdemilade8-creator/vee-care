@@ -1,11 +1,12 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { getApiErrorMessage } from '../utils/apiError';
+import { resolveApiBaseUrl } from './apiBase';
 
 export const TOKEN_KEY = 'healthtech_token';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api',
+  baseURL: resolveApiBaseUrl(),
   headers: { Accept: 'application/json' },
 });
 

@@ -7,6 +7,7 @@ import { Modal } from '../components/Modal';
 import { SkeletonRows } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { useApiMutation, useMedicalRecords, usePrescriptions } from '../hooks/useApi';
+import { useModuleEnabled } from '../lib/tenant/modules';
 import { endpoints } from '../services/endpoints';
 import styles from './TablePage.module.scss';
 
@@ -18,10 +19,11 @@ interface UploadForm {
 
 export function MedicalRecordsPage() {
   const { user } = useAuth();
+  const prescriptionsEnabled = useModuleEnabled('prescriptions');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const records = useMedicalRecords(search ? { search } : undefined);
-  const prescriptions = usePrescriptions(Boolean(user));
+  const prescriptions = usePrescriptions(Boolean(user) && prescriptionsEnabled);
   const upload = useApiMutation((payload: FormData) => endpoints.uploadRecord(payload), ['medical-records'], 'Record uploaded');
   const { register, handleSubmit } = useForm<UploadForm>();
   const canUseCurrentUploadForm = user?.role === 'patient';
@@ -51,30 +53,32 @@ export function MedicalRecordsPage() {
         </div>
       </div>
 
-      <Card>
-        <div className={styles.sectionTitle}>
-          <h3>Prescribed medicines</h3>
-          <p>Medicines approved by the pharmacy after your doctor's request are stored here.</p>
-        </div>
-        {prescriptions.isLoading ? <SkeletonRows rows={3} /> : filteredPrescriptions.length ? (
-          <div className={styles.table}>
-            {filteredPrescriptions.map((prescription) => (
-              <article key={prescription.id}>
-                <strong>{prescription.medication}</strong>
-                <span>{prescription.dosage}</span>
-                <span>{prescription.instructions}</span>
-                <span>Dr. {prescription.doctor?.name ?? 'Doctor'}</span>
-                <span>{new Date(prescription.issuedAt).toLocaleDateString()}</span>
-              </article>
-            ))}
+      {prescriptionsEnabled ? (
+        <Card>
+          <div className={styles.sectionTitle}>
+            <h3>Prescribed medicines</h3>
+            <p>Medicines approved by the pharmacy after your doctor's request are stored here.</p>
           </div>
-        ) : (
-          <div className={styles.emptyState}>
-            <h3>No prescriptions yet</h3>
-            <p>When your doctor sends a pharmacy request and medicines are marked available, they will appear here.</p>
-          </div>
-        )}
-      </Card>
+          {prescriptions.isLoading ? <SkeletonRows rows={3} /> : filteredPrescriptions.length ? (
+            <div className={styles.table}>
+              {filteredPrescriptions.map((prescription) => (
+                <article key={prescription.id}>
+                  <strong>{prescription.medication}</strong>
+                  <span>{prescription.dosage}</span>
+                  <span>{prescription.instructions}</span>
+                  <span>Dr. {prescription.doctor?.name ?? 'Doctor'}</span>
+                  <span>{new Date(prescription.issuedAt).toLocaleDateString()}</span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              <h3>No prescriptions yet</h3>
+              <p>When your doctor sends a pharmacy request and medicines are marked available, they will appear here.</p>
+            </div>
+          )}
+        </Card>
+      ) : null}
 
       <Card>
         <div className={styles.sectionTitle}>

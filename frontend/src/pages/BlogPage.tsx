@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronDown, HeartPulse, MessageCircle, Search, Send } from 'lucide-react';
+import { ArrowRight, ChevronDown, MessageCircle, Search, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -8,25 +8,29 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { SkeletonRows } from '../components/Skeleton';
 import { DataStatePanel } from '../components/DataStatePanel';
+import { TenantBrandLogo } from '../components/tenant/TenantBrandLogo';
 import { useAuth } from '../context/AuthContext';
+import { useTenantName } from '../context/TenantContext';
 import { usePosts } from '../hooks/useApi';
 import { endpoints } from '../services/endpoints';
 import type { Post } from '../types';
 import { excerpt, formatDateLong as formatDate, readingTime } from '../utils/format';
 import styles from './BlogPage.module.scss';
 
-function articleAlt(post: Post) {
-  return post.title?.trim() || 'Vee-care Journal article image';
+function articleAlt(post: Post, tenantName: string) {
+  return post.title?.trim() || `${tenantName} Journal article image`;
 }
 
 function ArticleImage({ post }: { post: Post }) {
+  const tenantName = useTenantName();
+
   if (post.imageUrl) {
-    return <img src={post.imageUrl} alt={articleAlt(post)} />;
+    return <img src={post.imageUrl} alt={articleAlt(post, tenantName)} />;
   }
 
   return (
     <div className={styles.imageFallback}>
-      <span>Vee-care Journal</span>
+      <span>{tenantName} Journal</span>
     </div>
   );
 }
@@ -132,6 +136,7 @@ function ArticleCard({ post, featured = false }: { post: Post; featured?: boolea
 export function BlogPage() {
   const [search, setSearch] = useState('');
   const searchQuery = search.trim();
+  const tenantName = useTenantName();
   const postFilters = useMemo(
     () => ({ per_page: '24', ...(searchQuery ? { search: searchQuery } : {}) }),
     [searchQuery],
@@ -146,8 +151,8 @@ export function BlogPage() {
     <main className={styles.page}>
       <motion.nav className={styles.nav} initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
         <Link to="/" className={styles.brand}>
-          <HeartPulse size={25} />
-          <strong>vee-care</strong>
+          <TenantBrandLogo size={25} alt={tenantName} />
+          <strong>{tenantName}</strong>
         </Link>
         <div className={styles.navLinks}>
           <Link to="/#features">Features</Link>
@@ -162,7 +167,7 @@ export function BlogPage() {
       </motion.nav>
 
       <section className={styles.blogHero}>
-        <motion.span initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>Vee-care Journal</motion.span>
+        <motion.span initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>{tenantName} Journal</motion.span>
         <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}>
           Practical health notes and product updates for modern care teams.
         </motion.h1>

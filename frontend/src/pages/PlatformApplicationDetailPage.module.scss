@@ -1,0 +1,291 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--app-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.back:hover {
+  color: var(--app-accent);
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.titleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+}
+
+.heading span {
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.heading h1 {
+  margin: 4px 0 0;
+  color: var(--app-heading);
+  font-size: 1.55rem;
+}
+
+.subdomain {
+  margin: 4px 0 0;
+  color: var(--app-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.headingActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 14px;
+  color: var(--app-heading);
+  font-size: 1.02rem;
+}
+
+.sectionTitle {
+  margin: 18px 0 6px;
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.description {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.info {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.infoRow dt {
+  color: var(--app-muted);
+  font-size: 0.85rem;
+}
+
+.infoRow dd {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--app-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.actionRow {
+  margin-top: 16px;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 40%, var(--app-line));
+  border-radius: 10px;
+  color: var(--app-accent);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.linkButton:hover {
+  background: var(--app-accent-soft);
+}
+
+.inviteNote {
+  margin: 14px 0 0;
+  color: var(--app-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.inviteCard {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 45%, var(--app-line));
+  background: var(--app-accent-soft);
+}
+
+.inviteHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--app-accent);
+  margin-bottom: 16px;
+}
+
+.inviteHeader svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.inviteHeader h2 {
+  margin: 0;
+  color: var(--app-heading);
+  font-size: 1.02rem;
+}
+
+.inviteHeader p {
+  margin: 3px 0 0;
+  color: var(--app-muted);
+  font-size: 0.86rem;
+}
+
+.inviteRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--app-line-soft);
+}
+
+.inviteRow > div {
+  min-width: 0;
+}
+
+.inviteRow span {
+  display: block;
+  color: var(--app-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.inviteRow code {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--app-heading);
+  font-size: 0.82rem;
+}
+
+.inviteExpiry {
+  margin: 6px 0 0;
+  color: var(--app-muted);
+  font-size: 0.8rem;
+}
+
+.copied {
+  color: var(--app-success, #16a34a);
+  border-color: color-mix(in srgb, #16a34a 40%, var(--app-line));
+}
+
+.modalLead {
+  margin: 0 0 10px;
+  color: var(--app-text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.field span {
+  color: var(--app-muted);
+  font-size: 0.85rem;
+}
+
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  font: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.field textarea:focus {
+  outline: none;
+  border-color: var(--app-accent);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.dangerButton,
+.dangerGhost {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.dangerButton:hover,
+.dangerGhost:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
