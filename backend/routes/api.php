@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\ImageUploadController;
+use App\Http\Controllers\Api\HospitalStructureController;
 use App\Http\Controllers\Api\MedicalRecordController;
 use App\Http\Controllers\Api\MedicineOrderController;
 use App\Http\Controllers\Api\NotificationController;
@@ -257,6 +258,30 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
         Route::post('/users/{user}/deactivate', [AdminUserController::class, 'deactivate']);
         Route::post('/users/invitations', [AdminUserController::class, 'invite'])->middleware('throttle:admin-user-invite');
         Route::delete('/users/invitations/{invitation}', [AdminUserController::class, 'revokeInvitation']);
+
+        Route::get('/departments', [HospitalStructureController::class, 'indexDepartments']);
+        Route::post('/departments', [HospitalStructureController::class, 'storeDepartment']);
+        Route::get('/departments/{department}', [HospitalStructureController::class, 'showDepartment']);
+        Route::patch('/departments/{department}', [HospitalStructureController::class, 'updateDepartment']);
+        Route::delete('/departments/{department}', [HospitalStructureController::class, 'destroyDepartment']);
+
+        Route::get('/wards', [HospitalStructureController::class, 'indexWards']);
+        Route::post('/wards', [HospitalStructureController::class, 'storeWard']);
+        Route::get('/wards/{ward}', [HospitalStructureController::class, 'showWard']);
+        Route::patch('/wards/{ward}', [HospitalStructureController::class, 'updateWard']);
+        Route::delete('/wards/{ward}', [HospitalStructureController::class, 'destroyWard']);
+
+        Route::get('/rooms', [HospitalStructureController::class, 'indexRooms']);
+        Route::post('/rooms', [HospitalStructureController::class, 'storeRoom']);
+        Route::get('/rooms/{room}', [HospitalStructureController::class, 'showRoom']);
+        Route::patch('/rooms/{room}', [HospitalStructureController::class, 'updateRoom']);
+        Route::delete('/rooms/{room}', [HospitalStructureController::class, 'destroyRoom']);
+
+        Route::get('/beds', [HospitalStructureController::class, 'indexBeds']);
+        Route::post('/beds', [HospitalStructureController::class, 'storeBed']);
+        Route::get('/beds/{bed}', [HospitalStructureController::class, 'showBed']);
+        Route::patch('/beds/{bed}', [HospitalStructureController::class, 'updateBed']);
+        Route::delete('/beds/{bed}', [HospitalStructureController::class, 'destroyBed']);
     });
 });
 

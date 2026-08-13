@@ -99,6 +99,22 @@ export function useAdminUsers(filters?: Record<string, string>) {
   return useQuery({ queryKey: ['admin-users', filters], queryFn: async () => (await endpoints.adminUsers(filters)).data });
 }
 
+export function useDepartments(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-departments', filters], queryFn: async () => (await endpoints.departments(filters)).data });
+}
+
+export function useWards(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-wards', filters], queryFn: async () => (await endpoints.wards(filters)).data });
+}
+
+export function useRooms(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-rooms', filters], queryFn: async () => (await endpoints.rooms(filters)).data });
+}
+
+export function useBeds(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-beds', filters], queryFn: async () => (await endpoints.beds(filters)).data });
+}
+
 export function useNotifications() {
   return useQuery({
     queryKey: ['notifications'],

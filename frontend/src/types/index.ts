@@ -1,6 +1,71 @@
 export type Role = 'hospital_admin' | 'doctor' | 'nurse' | 'patient' | 'lab_technician' | 'pharmacist';
 export type PlatformRole = 'platform_super_admin' | 'platform_admin';
 export type AppointmentStatus = 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled';
+export type StructureStatus = 'active' | 'inactive';
+export type BedStatus = 'available' | 'occupied' | 'reserved' | 'unavailable';
+export type WardType =
+  | 'general'
+  | 'private'
+  | 'semi_private'
+  | 'isolation'
+  | 'icu'
+  | 'maternity'
+  | 'pediatric'
+  | 'surgical'
+  | 'emergency';
+
+/** Hospital department as returned by the hospital-admin structure API. */
+export interface Department {
+  id: number;
+  name: string;
+  description?: string | null;
+  status: StructureStatus;
+  isActive: boolean;
+  wardsCount?: number;
+  createdAt?: string;
+}
+
+/** Hospital ward: a named grouping of rooms under a department. */
+export interface Ward {
+  id: number;
+  departmentId?: number | null;
+  department?: { id: number; name: string } | null;
+  name: string;
+  type?: WardType | null;
+  capacity: number;
+  status: StructureStatus;
+  isActive: boolean;
+  roomsCount?: number;
+  bedsCount?: number;
+  createdAt?: string;
+}
+
+/** Hospital room: a bed-carrying unit inside a ward. */
+export interface Room {
+  id: number;
+  wardId: number;
+  ward?: { id: number; name: string } | null;
+  name: string;
+  capacity: number;
+  status: StructureStatus;
+  isActive: boolean;
+  bedsCount?: number;
+  createdAt?: string;
+}
+
+/**
+ * Hospital bed. `status` is the operational bed state while `isActive`
+ * reflects the lifecycle toggle (deactivated beds are out of service).
+ */
+export interface Bed {
+  id: number;
+  roomId: number;
+  room?: { id: number; name: string; ward?: { id: number; name: string } | null } | null;
+  bedNumber: string;
+  status: BedStatus;
+  isActive: boolean;
+  createdAt?: string;
+}
 
 export interface User {
   id: number;

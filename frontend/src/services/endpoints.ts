@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { AdminOrganizationResponse, AdminUser, AdminUserInvitationResult, AdminUsersResponse, Analytics, Appointment, AuditLog, CareNotification, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, UrgentCareRequest, User, Vital } from '../types';
+import type { AdminOrganizationResponse, AdminUser, AdminUserInvitationResult, AdminUsersResponse, Analytics, Appointment, AuditLog, Bed, CareNotification, Department, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, Room, UrgentCareRequest, User, Vital, Ward } from '../types';
 
 export const endpoints = {
   login: (payload: { email: string; password: string }) => api.post<{ user: User; token: string }>('/auth/login', payload),
@@ -45,6 +45,22 @@ export const endpoints = {
     api.post<{ message: string; user: AdminUser }>(`/admin/users/invitations/${token}/accept`, payload),
   adminOrganization: () => api.get<AdminOrganizationResponse>('/admin/organization'),
   adminAppointments: (params?: Record<string, string>) => api.get<Paginated<Appointment>>('/admin/appointments', { params }),
+  departments: (params?: Record<string, string>) => api.get<Paginated<Department>>('/admin/departments', { params }),
+  createDepartment: (payload: unknown) => api.post<{ data: Department }>('/admin/departments', payload),
+  updateDepartment: (id: number, payload: unknown) => api.patch<{ data: Department }>(`/admin/departments/${id}`, payload),
+  deleteDepartment: (id: number) => api.delete(`/admin/departments/${id}`),
+  wards: (params?: Record<string, string>) => api.get<Paginated<Ward>>('/admin/wards', { params }),
+  createWard: (payload: unknown) => api.post<{ data: Ward }>('/admin/wards', payload),
+  updateWard: (id: number, payload: unknown) => api.patch<{ data: Ward }>(`/admin/wards/${id}`, payload),
+  deleteWard: (id: number) => api.delete(`/admin/wards/${id}`),
+  rooms: (params?: Record<string, string>) => api.get<Paginated<Room>>('/admin/rooms', { params }),
+  createRoom: (payload: unknown) => api.post<{ data: Room }>('/admin/rooms', payload),
+  updateRoom: (id: number, payload: unknown) => api.patch<{ data: Room }>(`/admin/rooms/${id}`, payload),
+  deleteRoom: (id: number) => api.delete(`/admin/rooms/${id}`),
+  beds: (params?: Record<string, string>) => api.get<Paginated<Bed>>('/admin/beds', { params }),
+  createBed: (payload: unknown) => api.post<{ data: Bed }>('/admin/beds', payload),
+  updateBed: (id: number, payload: unknown) => api.patch<{ data: Bed }>(`/admin/beds/${id}`, payload),
+  deleteBed: (id: number) => api.delete(`/admin/beds/${id}`),
   notifications: (params?: Record<string, string>) => api.get<Paginated<CareNotification>>('/notifications', { params }),
   markNotificationRead: (id: number) => api.patch<CareNotification>(`/notifications/${id}/read`),
   markAllNotificationsRead: () => api.post('/notifications/read-all'),
