@@ -49,8 +49,14 @@ services:
   frontend:
     build:
       context: ./frontend
-    environment:
-      VITE_API_BASE_URL: http://127.0.0.1:8000/api
+    # Intentionally no VITE_API_BASE_URL override: the SPA derives its API
+    # base from window.location.hostname (src/services/apiBase.ts), so each
+    # tenant host (e.g. http://hospital-one.vee-care.test:5173) reaches its
+    # own API Host (http://hospital-one.vee-care.test:8000/api) and the backend
+    # ResolveTenant resolver stays authoritative. Setting VITE_API_BASE_URL here
+    # pinned every tenant to http://127.0.0.1:8000/api (Host=127.0.0.1 => platform
+    # context) and broke tenant authentication. Production deployments may still
+    # set VITE_API_BASE_URL explicitly where the API lives on a dedicated host.
     ports:
       - "5173:5173"
     volumes:
