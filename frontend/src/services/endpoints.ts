@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { AdminOrganizationResponse, AdminUser, AdminUserInvitationResult, AdminUsersResponse, Analytics, Appointment, AuditLog, Bed, CareNotification, Department, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, Room, UrgentCareRequest, User, Vital, Ward } from '../types';
+import type { AdminOrganizationResponse, AdminUser, AdminUserInvitationResult, AdminUsersResponse, Admission, Analytics, Appointment, AuditLog, Bed, CareNotification, Department, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, Room, UrgentCareRequest, User, Vital, Ward, WardOccupancy } from '../types';
 
 export const endpoints = {
   login: (payload: { email: string; password: string }) => api.post<{ user: User; token: string }>('/auth/login', payload),
@@ -61,6 +61,14 @@ export const endpoints = {
   createBed: (payload: unknown) => api.post<{ data: Bed }>('/admin/beds', payload),
   updateBed: (id: number, payload: unknown) => api.patch<{ data: Bed }>(`/admin/beds/${id}`, payload),
   deleteBed: (id: number) => api.delete(`/admin/beds/${id}`),
+  admissions: (params?: Record<string, string>) => api.get<Paginated<Admission>>('/admin/admissions', { params }),
+  createAdmission: (payload: unknown) => api.post<{ data: Admission }>('/admin/admissions', payload),
+  admission: (id: number) => api.get<{ data: Admission }>(`/admin/admissions/${id}`),
+  updateAdmission: (id: number, payload: unknown) => api.patch<{ data: Admission }>(`/admin/admissions/${id}`, payload),
+  dischargeAdmission: (id: number, payload?: unknown) => api.post<{ data: Admission }>(`/admin/admissions/${id}/discharge`, payload),
+  deleteAdmission: (id: number) => api.delete(`/admin/admissions/${id}`),
+  bedAvailability: (params?: Record<string, string>) => api.get<Paginated<Bed>>('/admin/beds/availability', { params }),
+  wardOccupancy: (params?: Record<string, string>) => api.get<Paginated<WardOccupancy>>('/admin/occupancy', { params }),
   notifications: (params?: Record<string, string>) => api.get<Paginated<CareNotification>>('/notifications', { params }),
   markNotificationRead: (id: number) => api.patch<CareNotification>(`/notifications/${id}/read`),
   markAllNotificationsRead: () => api.post('/notifications/read-all'),

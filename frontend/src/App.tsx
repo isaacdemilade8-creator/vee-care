@@ -16,6 +16,8 @@ import { DepartmentsPage } from './pages/admin/structure/DepartmentsPage';
 import { WardsPage } from './pages/admin/structure/WardsPage';
 import { RoomsPage } from './pages/admin/structure/RoomsPage';
 import { BedsPage } from './pages/admin/structure/BedsPage';
+import { AdmissionsPage } from './pages/admin/admissions/AdmissionsPage';
+import { BedOccupancyPage } from './pages/admin/beds/BedOccupancyPage';
 import { AppointmentsPage } from './pages/AppointmentsPage';
 import { AuthPage } from './pages/AuthPage';
 import { BlogPage } from './pages/BlogPage';
@@ -237,6 +239,8 @@ function TenantRoutes() {
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
+            <Route path="/admin/admissions" element={<AdmissionsPage />} />
+            <Route path="/admin/beds/occupancy" element={<BedOccupancyPage />} />
             <Route path="/admin/departments" element={<DepartmentsPage />} />
             <Route path="/admin/wards" element={<WardsPage />} />
             <Route path="/admin/rooms" element={<RoomsPage />} />

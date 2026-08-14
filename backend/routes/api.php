@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AppointmentController;
@@ -246,6 +247,17 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
         ->middleware('role:patient,doctor', 'module:telemedicine');
 
     Route::prefix('admin')->middleware('role:hospital_admin')->group(function (): void {
+        // Inpatient admissions + bed availability/occupancy. Availability is
+        // registered before the structure routes so `{bed}` never captures it.
+        Route::get('/admissions', [AdmissionController::class, 'index']);
+        Route::post('/admissions', [AdmissionController::class, 'store']);
+        Route::get('/admissions/{admission}', [AdmissionController::class, 'show']);
+        Route::patch('/admissions/{admission}', [AdmissionController::class, 'update']);
+        Route::post('/admissions/{admission}/discharge', [AdmissionController::class, 'discharge']);
+        Route::delete('/admissions/{admission}', [AdmissionController::class, 'destroy']);
+        Route::get('/beds/availability', [AdmissionController::class, 'availability']);
+        Route::get('/occupancy', [AdmissionController::class, 'occupancy']);
+
         Route::get('/analytics', [AdminController::class, 'analytics']);
         Route::get('/appointments', [AdminController::class, 'appointments']);
         Route::get('/organization', [AdminUserController::class, 'organization']);

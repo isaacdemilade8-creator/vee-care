@@ -115,6 +115,30 @@ export function useBeds(filters?: Record<string, string>) {
   return useQuery({ queryKey: ['admin-beds', filters], queryFn: async () => (await endpoints.beds(filters)).data });
 }
 
+export function useAdmissions(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-admissions', filters], queryFn: async () => (await endpoints.admissions(filters)).data });
+}
+
+export function useAdmission(id?: number) {
+  return useQuery({
+    queryKey: ['admin-admission', id],
+    enabled: Boolean(id),
+    queryFn: async () => unwrapResource((await endpoints.admission(id as number)).data),
+  });
+}
+
+export function useBedAvailability(filters?: Record<string, string>, enabled = true) {
+  return useQuery({
+    queryKey: ['admin-beds-availability', filters],
+    enabled,
+    queryFn: async () => (await endpoints.bedAvailability(filters)).data,
+  });
+}
+
+export function useWardOccupancy(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-occupancy', filters], queryFn: async () => (await endpoints.wardOccupancy(filters)).data });
+}
+
 export function useNotifications() {
   return useQuery({
     queryKey: ['notifications'],

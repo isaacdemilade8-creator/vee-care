@@ -54,3 +54,21 @@ Signals are broadcast on `private-video.appointments.{appointmentId}` using the 
 - `GET /admin/users?role=doctor&search=care`
 - `PATCH /admin/users/{user}`
 - `GET /admin/appointments?status=approved`
+
+## Hospital structure (hospital_admin only)
+- `GET /admin/departments`, `POST /admin/departments`, `GET/PATCH/DELETE /admin/departments/{department}`
+- `GET /admin/wards`, `POST /admin/wards`, `GET/PATCH/DELETE /admin/wards/{ward}`
+- `GET /admin/rooms`, `POST /admin/rooms`, `GET/PATCH/DELETE /admin/rooms/{room}`
+- `GET /admin/beds`, `POST /admin/beds`, `GET/PATCH/DELETE /admin/beds/{bed}`
+
+## Admissions (hospital_admin only)
+- `GET /admin/admissions?status=admitted&search=smith&page=1` - list admissions (history retained).
+- `POST /admin/admissions` - admit a patient: `patient_id`, `department_id`, `ward_id`, `room_id`, `bed_id`, optional `practitioner_id`, `admitted_at`, `reason`, `notes`. Marks the bed `occupied`; one active admission per patient/bed.
+- `GET /admin/admissions/{admission}` - single admission with patient/department/ward/room/bed/practitioner.
+- `PATCH /admin/admissions/{admission}` - metadata only (`reason`, `notes`, `practitioner_id`).
+- `POST /admin/admissions/{admission}/discharge` - discharge; sets `discharged_at`, releases the bed to `available`.
+- `DELETE /admin/admissions/{admission}` - delete (releases bed if still admitted).
+- `GET /admin/beds/availability` - list beds with admission context (filter `?status=&room_id=&search=`), for admission pickers.
+- `GET /admin/occupancy?department_id=&page=1` - per-ward occupancy (capacity/available/occupied/reserved/unavailable) with room→bed layout.
+
+Double-booking is prevented with `lockForUpdate()` plus partial unique indexes on `(bed_id, status)` and `(patient_id, status)` where `status='admitted'`.

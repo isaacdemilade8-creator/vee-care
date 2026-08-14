@@ -1,0 +1,85 @@
+.wardCard {
+  overflow: hidden;
+}
+
+.wardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.wardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wardTitle svg {
+  color: var(--app-muted);
+  transition: transform 0.2s ease;
+}
+
+.wardTitle svg.expanded {
+  transform: rotate(180deg);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--app-muted);
+  font-size: 0.82rem;
+}
+
+.stat strong {
+  color: var(--app-heading);
+  font-size: 1.05rem;
+}
+
+.stat.available strong {
+  color: var(--app-accent);
+}
+
+.stat.occupied strong {
+  color: var(--app-warm);
+}
+
+.stat.reserved strong {
+  color: #2563eb;
+}
+
+.stat.unavailable strong {
+  color: #dc2626;
+}
+
+.bedList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bedChip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 9px;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  background: var(--app-surface);
+}

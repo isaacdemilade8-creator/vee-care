@@ -1,4 +1,4 @@
-import { Activity, BedDouble, Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, CreditCard, DoorOpen, FileText, FlaskConical, HeartHandshake, LayoutDashboard, LayoutGrid, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Pill, Settings, ShieldCheck, Stethoscope, UserRound, Users } from 'lucide-react';
+import { Activity, BedDouble, Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, CreditCard, DoorOpen, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, LayoutGrid, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Pill, Settings, ShieldCheck, Stethoscope, UserRound, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
@@ -64,6 +64,8 @@ export function DashboardLayout() {
     ? [
         { to: '/admin', label: 'Admin', icon: ShieldCheck },
         { to: '/admin/users', label: 'Users', icon: Users },
+        { to: '/admin/admissions', label: 'Admissions', icon: HeartPulse },
+        { to: '/admin/beds/occupancy', label: 'Bed dashboard', icon: BedDouble },
         { to: '/admin/departments', label: 'Departments', icon: Building2 },
         { to: '/admin/wards', label: 'Wards', icon: LayoutGrid },
         { to: '/admin/rooms', label: 'Rooms', icon: DoorOpen },

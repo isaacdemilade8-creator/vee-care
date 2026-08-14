@@ -1,6 +1,7 @@
 export type Role = 'hospital_admin' | 'doctor' | 'nurse' | 'patient' | 'lab_technician' | 'pharmacist';
 export type PlatformRole = 'platform_super_admin' | 'platform_admin';
 export type AppointmentStatus = 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled';
+export type AdmissionStatus = 'admitted' | 'discharged';
 export type StructureStatus = 'active' | 'inactive';
 export type BedStatus = 'available' | 'occupied' | 'reserved' | 'unavailable';
 export type WardType =
@@ -65,6 +66,46 @@ export interface Bed {
   status: BedStatus;
   isActive: boolean;
   createdAt?: string;
+}
+
+/**
+ * Inpatient admission as returned by the hospital-admin admission API. The
+ * structure chain (department -> ward -> room -> bed) is denormalised onto the
+ * row and kept consistent; `practitioner` is the optional attending user.
+ */
+export interface Admission {
+  id: number;
+  patient?: User;
+  practitioner?: User | null;
+  department?: { id: number; name: string } | null;
+  ward?: { id: number; name: string } | null;
+  room?: { id: number; name: string } | null;
+  bed?: Bed | null;
+  status: AdmissionStatus;
+  admittedAt: string;
+  dischargedAt?: string | null;
+  reason?: string | null;
+  notes?: string | null;
+  createdAt?: string;
+}
+
+/** Per-ward bed occupancy summary from the bed dashboard API. */
+export interface WardOccupancy {
+  id: number;
+  name: string;
+  department?: { id: number; name: string } | null;
+  capacity: number;
+  totalBeds: number;
+  availableBeds: number;
+  occupiedBeds: number;
+  reservedBeds: number;
+  unavailableBeds: number;
+  rooms: Array<{
+    id: number;
+    name: string;
+    capacity: number;
+    beds: Array<{ id: number; bedNumber: string; status: BedStatus; isActive: boolean }>;
+  }>;
 }
 
 export interface User {

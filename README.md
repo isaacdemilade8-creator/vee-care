@@ -53,6 +53,12 @@ Tenant and platform subdomains (`hospital-one.vee-care.test`, `admin.vee-care.te
 
 See [backend/API_ROUTES.md](backend/API_ROUTES.md).
 
+## Hospital structure & admissions
+
+Departments, wards, rooms and beds are managed under `/admin/*` (hospital_admin). Admissions link a patient to a bed,
+track the discharge lifecycle with history retention, and are protected against double-booking via row locks and
+partial unique indexes. See [backend/API_ROUTES.md](backend/API_ROUTES.md#admissions-hospital_admin-only).
+
 ## Real-Time Notifications
 
 See [REALTIME_NOTIFICATIONS.md](REALTIME_NOTIFICATIONS.md) for Laravel Echo + Pusher setup and event flow.
