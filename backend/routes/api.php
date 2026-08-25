@@ -1,15 +1,16 @@
 <?php
 
-use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\DutyController;
 use App\Http\Controllers\Api\EnterpriseController;
-use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\HospitalStructureController;
+use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\MedicalRecordController;
 use App\Http\Controllers\Api\MedicineOrderController;
 use App\Http\Controllers\Api\NotificationController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Api\PlatformAuthController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\PractitionerReviewController;
 use App\Http\Controllers\Api\PrescriptionController;
+use App\Http\Controllers\Api\ShiftController;
 use App\Http\Controllers\Api\TenantConfigurationController;
 use App\Http\Controllers\Api\TenantContextController;
 use App\Http\Controllers\Api\UrgentCareRequestController;
@@ -257,6 +259,22 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
         Route::delete('/admissions/{admission}', [AdmissionController::class, 'destroy']);
         Route::get('/beds/availability', [AdmissionController::class, 'availability']);
         Route::get('/occupancy', [AdmissionController::class, 'occupancy']);
+
+        // Practitioner duty & shift management. `/duties/current` is registered
+        // before `/duties/{duty}` so the static route is never captured by the
+        // implicit route-model binding.
+        Route::get('/shifts', [ShiftController::class, 'index']);
+        Route::post('/shifts', [ShiftController::class, 'store']);
+        Route::get('/shifts/{shift}', [ShiftController::class, 'show']);
+        Route::patch('/shifts/{shift}', [ShiftController::class, 'update']);
+        Route::delete('/shifts/{shift}', [ShiftController::class, 'destroy']);
+
+        Route::get('/duties/current', [DutyController::class, 'current']);
+        Route::get('/duties', [DutyController::class, 'index']);
+        Route::post('/duties', [DutyController::class, 'store']);
+        Route::get('/duties/{duty}', [DutyController::class, 'show']);
+        Route::patch('/duties/{duty}', [DutyController::class, 'update']);
+        Route::delete('/duties/{duty}', [DutyController::class, 'destroy']);
 
         Route::get('/analytics', [AdminController::class, 'analytics']);
         Route::get('/appointments', [AdminController::class, 'appointments']);
