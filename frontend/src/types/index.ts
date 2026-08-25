@@ -108,6 +108,53 @@ export interface WardOccupancy {
   }>;
 }
 
+/**
+ * Reusable working-period definition (Morning 08:00-16:00, Night 22:00-06:00).
+ * An end time earlier than the start time spans midnight.
+ */
+export interface Shift {
+  id: number;
+  name: string;
+  startTime: string;
+  endTime: string;
+  description?: string | null;
+  status: StructureStatus;
+  dutiesCount?: number;
+  createdAt?: string;
+}
+
+export type DutyStatus = 'scheduled' | 'completed' | 'cancelled';
+
+/**
+ * A practitioner scheduled to work a particular shift on a particular date.
+ * Whether someone is currently on duty is derived, never stored here.
+ */
+export interface DutyAssignment {
+  id: number;
+  practitioner?: { id: number; name: string; role: Role; specialty?: string | null } | null;
+  shift?: { id: number; name: string; startTime: string; endTime: string; status: StructureStatus } | null;
+  department?: { id: number; name: string } | null;
+  ward?: { id: number; name: string } | null;
+  dutyDate: string;
+  status: DutyStatus;
+  notes?: string | null;
+  createdAt?: string;
+}
+
+/** One "currently on duty" team grouped by department / ward / shift. */
+export interface CurrentDutyGroup {
+  department: { id: number; name: string } | null;
+  ward: { id: number; name: string } | null;
+  shift: { id: number; name: string; startTime: string; endTime: string };
+  practitioners: Array<{ id: number; name: string; role: Role; specialty?: string | null }>;
+}
+
+/** Response shape of the current-duty lookup endpoint (not paginated). */
+export interface CurrentDutyResponse {
+  data: CurrentDutyGroup[];
+  meta: { asOf: string; timezone: string; date: string };
+}
+
 export interface User {
   id: number;
   name: string;

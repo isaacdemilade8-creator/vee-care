@@ -18,6 +18,9 @@ import { RoomsPage } from './pages/admin/structure/RoomsPage';
 import { BedsPage } from './pages/admin/structure/BedsPage';
 import { AdmissionsPage } from './pages/admin/admissions/AdmissionsPage';
 import { BedOccupancyPage } from './pages/admin/beds/BedOccupancyPage';
+import { ShiftsPage } from './pages/admin/duty/ShiftsPage';
+import { DutyRosterPage } from './pages/admin/duty/DutyRosterPage';
+import { CurrentDutyPage } from './pages/admin/duty/CurrentDutyPage';
 import { AppointmentsPage } from './pages/AppointmentsPage';
 import { AuthPage } from './pages/AuthPage';
 import { BlogPage } from './pages/BlogPage';
@@ -245,6 +248,9 @@ function TenantRoutes() {
             <Route path="/admin/wards" element={<WardsPage />} />
             <Route path="/admin/rooms" element={<RoomsPage />} />
             <Route path="/admin/beds" element={<BedsPage />} />
+            <Route path="/admin/shifts" element={<ShiftsPage />} />
+            <Route path="/admin/duties" element={<DutyRosterPage />} />
+            <Route path="/admin/duties/current" element={<CurrentDutyPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={routeRoles.admin} />}>
             <Route path="/admin/settings" element={<HospitalSettingsLayout />}>

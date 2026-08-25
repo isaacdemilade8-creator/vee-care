@@ -20,9 +20,11 @@ return new class extends Migration
      *
      * `duty_assignments` record which practitioner works which shift on which
      * date (SHIFT defines the working period, DUTY ASSIGNMENT records who is
-     * working it on a particular date). `department_id` is required so every
-     * duty has an operational home; `ward_id` is optional because practitioners
-     * may also work at department level. `practitioner_id` is a plain user
+     * working it on a particular date). `department_id` is required by the
+     * service layer so every duty has an operational home; the column is
+     * nullable at the schema level (mirroring admissions) so deleting a
+     * department nulls duties out instead of blocking the delete. `ward_id`
+     * is optional because practitioners may also work at department level. `practitioner_id` is a plain user
      * reference (role doctor/nurse/pharmacist/lab_technician, see Role::staff())
      * mirroring the admissions table's practitioner convention.
      *
@@ -57,9 +59,9 @@ return new class extends Migration
         Schema::create('duty_assignments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('organization_id')->nullable()->index();
-            $table->foreignId('practitioner_id')->constrained('users')->nullOnDelete();
+            $table->foreignId('practitioner_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('shift_id')->constrained()->restrictOnDelete();
-            $table->foreignId('department_id')->constrained()->nullOnDelete();
+            $table->foreignId('department_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('ward_id')->nullable()->constrained()->nullOnDelete();
             $table->date('duty_date')->index();
             $table->string('status', 20)->default('scheduled')->index();

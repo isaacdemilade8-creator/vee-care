@@ -1,0 +1,117 @@
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.detailGrid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detailLabel {
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.detailValue {
+  color: var(--app-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.detailSub {
+  color: var(--app-muted);
+  font-size: 0.82rem;
+}
+
+.confirmButton {
+  background: #16a34a;
+}
+
+.metaLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: var(--app-muted);
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+}
+
+.groupGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.groupCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.groupHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupShift {
+  color: var(--app-heading);
+  font-weight: 600;
+}
+
+.groupWindow {
+  color: var(--app-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.groupWhere {
+  color: var(--app-muted);
+  font-size: 0.85rem;
+}
+
+.teamList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--app-border, rgba(128, 128, 128, 0.2));
+  padding-top: 12px;
+}
+
+.teamMember {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.memberName {
+  color: var(--app-heading);
+  font-weight: 500;
+}
+
+.memberRole {
+  color: var(--app-muted);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+@media (max-width: 560px) {
+  .formGrid,
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}

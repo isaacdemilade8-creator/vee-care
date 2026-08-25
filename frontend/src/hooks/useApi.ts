@@ -139,6 +139,18 @@ export function useWardOccupancy(filters?: Record<string, string>) {
   return useQuery({ queryKey: ['admin-occupancy', filters], queryFn: async () => (await endpoints.wardOccupancy(filters)).data });
 }
 
+export function useShifts(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-shifts', filters], queryFn: async () => (await endpoints.shifts(filters)).data });
+}
+
+export function useDuties(filters?: Record<string, string>) {
+  return useQuery({ queryKey: ['admin-duties', filters], queryFn: async () => (await endpoints.duties(filters)).data });
+}
+
+export function useCurrentDuties() {
+  return useQuery({ queryKey: ['admin-duties-current'], queryFn: async () => (await endpoints.currentDuties()).data });
+}
+
 export function useNotifications() {
   return useQuery({
     queryKey: ['notifications'],

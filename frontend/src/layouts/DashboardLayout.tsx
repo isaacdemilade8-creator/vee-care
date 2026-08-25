@@ -1,4 +1,4 @@
-import { Activity, BedDouble, Bot, Boxes, Building2, CalendarDays, ChevronDown, ClipboardList, CreditCard, DoorOpen, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, LayoutGrid, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Pill, Settings, ShieldCheck, Stethoscope, UserRound, Users } from 'lucide-react';
+import { Activity, BedDouble, Bot, Boxes, Building2, CalendarClock, CalendarDays, ChevronDown, ClipboardList, Clock, CreditCard, DoorOpen, FileText, FlaskConical, HeartHandshake, HeartPulse, LayoutDashboard, LayoutGrid, Menu, MessageCircle, Moon, Newspaper, PackageCheck, PackagePlus, Pill, Settings, ShieldCheck, Stethoscope, UserCheck, UserRound, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
@@ -70,6 +70,9 @@ export function DashboardLayout() {
         { to: '/admin/wards', label: 'Wards', icon: LayoutGrid },
         { to: '/admin/rooms', label: 'Rooms', icon: DoorOpen },
         { to: '/admin/beds', label: 'Beds', icon: BedDouble },
+        { to: '/admin/shifts', label: 'Shifts', icon: Clock },
+        { to: '/admin/duties', label: 'Duty Roster', icon: CalendarClock },
+        { to: '/admin/duties/current', label: 'Current Duty', icon: UserCheck },
         { to: '/admin?tab=campaign', label: 'Campaign', icon: Newspaper, module: 'blog' },
         { to: '/admin/settings', label: 'Hospital Settings', icon: Settings },
       ]

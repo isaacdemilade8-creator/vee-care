@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { AdminOrganizationResponse, AdminUser, AdminUserInvitationResult, AdminUsersResponse, Admission, Analytics, Appointment, AuditLog, Bed, CareNotification, Department, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, Room, UrgentCareRequest, User, Vital, Ward, WardOccupancy } from '../types';
+import type { AdminOrganizationResponse, AdminUser, AdminUserInvitationResult, AdminUsersResponse, Admission, Analytics, Appointment, AuditLog, Bed, CareNotification, CurrentDutyResponse, Department, DutyAssignment, EnterpriseStats, LabTest, MedicalRecord, Medicine, Message, Paginated, PatientCard, PatientProfile, PharmacyRequest, Post, PractitionerReview, Prescription, Room, Shift, UrgentCareRequest, User, Vital, Ward, WardOccupancy } from '../types';
 
 export const endpoints = {
   login: (payload: { email: string; password: string }) => api.post<{ user: User; token: string }>('/auth/login', payload),
@@ -69,6 +69,15 @@ export const endpoints = {
   deleteAdmission: (id: number) => api.delete(`/admin/admissions/${id}`),
   bedAvailability: (params?: Record<string, string>) => api.get<Paginated<Bed>>('/admin/beds/availability', { params }),
   wardOccupancy: (params?: Record<string, string>) => api.get<Paginated<WardOccupancy>>('/admin/occupancy', { params }),
+  shifts: (params?: Record<string, string>) => api.get<Paginated<Shift>>('/admin/shifts', { params }),
+  createShift: (payload: unknown) => api.post<{ data: Shift }>('/admin/shifts', payload),
+  updateShift: (id: number, payload: unknown) => api.patch<{ data: Shift }>(`/admin/shifts/${id}`, payload),
+  deleteShift: (id: number) => api.delete(`/admin/shifts/${id}`),
+  duties: (params?: Record<string, string>) => api.get<Paginated<DutyAssignment>>('/admin/duties', { params }),
+  createDuty: (payload: unknown) => api.post<{ data: DutyAssignment }>('/admin/duties', payload),
+  updateDuty: (id: number, payload: unknown) => api.patch<{ data: DutyAssignment }>(`/admin/duties/${id}`, payload),
+  deleteDuty: (id: number) => api.delete(`/admin/duties/${id}`),
+  currentDuties: () => api.get<CurrentDutyResponse>('/admin/duties/current'),
   notifications: (params?: Record<string, string>) => api.get<Paginated<CareNotification>>('/notifications', { params }),
   markNotificationRead: (id: number) => api.patch<CareNotification>(`/notifications/${id}/read`),
   markAllNotificationsRead: () => api.post('/notifications/read-all'),
