@@ -133,7 +133,8 @@ class HospitalAdminInvitationTest extends TestCase
 
         Mail::assertQueued(HospitalAdminInvitationMail::class, function (HospitalAdminInvitationMail $mail): bool {
             return $mail->hasTo('jane@mercyhospital.test')
-                && str_contains($mail->acceptUrl, '/api/platform/hospital-applications/invitations/');
+                && str_contains($mail->acceptUrl, '/platform/applications/invitations/')
+                && ! str_contains($mail->acceptUrl, '/api/platform/hospital-applications/invitations/');
         });
     }
 

@@ -8,6 +8,21 @@ import type { PlatformTenant } from '../tenant/types';
  */
 export type PlatformApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected';
 
+/**
+ * Payload for the public hospital application submission. Mirrors the backend
+ * validation contract: only fields the public endpoint accepts. No roles,
+ * permissions, tenant id, database or credential fields are ever submitted.
+ */
+export interface HospitalApplicationSubmission {
+  hospital_name: string;
+  slug: string;
+  type: 'hospital' | 'clinic' | 'lab' | 'pharmacy';
+  contact_name: string;
+  contact_email: string;
+  contact_phone?: string;
+  description?: string;
+}
+
 /** Hospital application as returned by the platform (control plane) API. */
 export interface PlatformApplication {
   id: number;

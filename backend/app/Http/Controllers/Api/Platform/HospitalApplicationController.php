@@ -177,7 +177,7 @@ class HospitalApplicationController extends Controller
                 'token' => $token,
                 'email' => $invitation->email,
                 'expiresAt' => $invitation->expires_at->toISOString(),
-                'acceptUrl' => url('/api/platform/hospital-applications/invitations/'.$token.'/accept'),
+                'acceptUrl' => $this->frontendInvitationUrl($token),
             ],
         ]);
     }
@@ -292,6 +292,19 @@ class HospitalApplicationController extends Controller
     }
 
     /**
+     * Build the public frontend URL where a hospital administrator accepts
+     * their invitation. The plaintext token is embedded only in this link, and
+     * the link points to the React SPA (not the API) so the acceptance UI is
+     * rendered. The backend API route remains the only authority for redeeming
+     * the token via POST.
+     */
+    protected function frontendInvitationUrl(string $token): string
+    {
+        return rtrim((string) config('app.frontend_url'), '/')
+            .'/platform/applications/invitations/'.$token.'/accept';
+    }
+
+    /**
      * Deliver the invitation to the applicant's contact email.
      *
      * Best-effort: a mail failure is logged but never fails approval or
@@ -304,7 +317,7 @@ class HospitalApplicationController extends Controller
             Mail::to($invitation->email)->queue(
                 new HospitalAdminInvitationMail(
                     $invitation,
-                    url('/api/platform/hospital-applications/invitations/'.$token.'/accept'),
+                    $this->frontendInvitationUrl($token),
                 ),
             );
         } catch (\Throwable $e) {

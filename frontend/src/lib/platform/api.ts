@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import type { Paginated, PlatformRole, User } from '../../types';
 import type { PlatformTenant } from '../tenant/types';
 import type {
+  HospitalApplicationSubmission,
   PlatformApplication,
   PlatformApprovalResponse,
   PlatformAuditLog,
@@ -48,6 +49,30 @@ platformApi.interceptors.response.use(
   },
 );
 
+/**
+ * Public, unauthenticated client for the public onboarding endpoints.
+ *
+ * This deliberately does NOT attach a bearer token (it never reads the
+ * platform token from localStorage). It is used only for the public hospital
+ * application submission and the single-use hospital-admin invitation
+ * acceptance, both of which must work before (or without) a platform session.
+ */
+export const publicApi = axios.create({
+  baseURL: resolveApiBaseUrl(),
+  headers: { Accept: 'application/json' },
+});
+
+publicApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message = getApiErrorMessage(error);
+    if (error.response?.status !== 401) {
+      toast.error(message);
+    }
+    return Promise.reject(error);
+  },
+);
+
 export const platformEndpoints = {
   login: (payload: { email: string; password: string }) =>
     platformApi.post<{ user: User; token: string }>('/platform/auth/login', payload),
@@ -71,6 +96,21 @@ export const platformEndpoints = {
     platformApi.post<{ data: PlatformApplication }>(`/platform/hospital-applications/${id}/reject`, {
       reason,
     }),
+  /**
+   * Public hospital application submission. Uses the unauthenticated client:
+   * a hospital representative may apply before logging in to the platform.
+   */
+  submitHospitalApplication: (payload: HospitalApplicationSubmission) =>
+    publicApi.post<{ data: PlatformApplication }>('/platform/hospital-applications', payload),
+  /**
+   * Public hospital-admin invitation acceptance. Uses the unauthenticated
+   * client; the raw token is read from the route and sent once with the POST.
+   */
+  acceptHospitalInvitation: (token: string, payload: { name?: string; password: string; password_confirmation: string }) =>
+    publicApi.post<{ message: string; user: PlatformUser }>(
+      `/platform/hospital-applications/invitations/${token}/accept`,
+      payload,
+    ),
   auditLogs: (params?: Record<string, string>) =>
     platformApi.get<Paginated<PlatformAuditLog>>('/platform/audit-logs', { params }),
   users: (params?: Record<string, string>) =>

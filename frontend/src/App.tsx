@@ -44,6 +44,8 @@ import { VideoConsultationPage } from './pages/VideoConsultationPage';
 import { PlatformDashboardPage } from './pages/PlatformDashboardPage';
 import { PlatformLoginPage } from './pages/PlatformLoginPage';
 import { PlatformInvitationAcceptPage } from './pages/PlatformInvitationAcceptPage';
+import { PlatformApplyPage } from './pages/platform/PlatformApplyPage';
+import { HospitalAdminInvitationAcceptPage } from './pages/platform/HospitalAdminInvitationAcceptPage';
 import { PlatformHospitalsPage } from './pages/PlatformHospitalsPage';
 import { PlatformHospitalDetailPage } from './pages/PlatformHospitalDetailPage';
 import { PlatformApplicationsPage } from './pages/PlatformApplicationsPage';
@@ -87,6 +89,11 @@ function PlatformRoutes() {
   return (
     <Routes>
       <Route path="login" element={<PlatformLoginPage />} />
+      <Route path="apply" element={<PlatformApplyPage />} />
+      <Route
+        path="applications/invitations/:token/accept"
+        element={<HospitalAdminInvitationAcceptPage />}
+      />
       <Route path="invitations/:token/accept" element={<PlatformInvitationAcceptPage />} />
       <Route path="" element={<PlatformShell />}>
         <Route index element={<PlatformDashboardPage />} />
